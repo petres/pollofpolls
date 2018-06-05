@@ -1,7 +1,7 @@
 Package: pollofpolls
 Type: Package
 Title: Loading and Analyzing Polls
-Version: 0.3
+Version: 0.3.1
 Author: Peter Reschenhofer
 Maintainer: Peter Reschenhofer <pr@pollofpolls.eu>
 Description: Loads poll data from the website pollofpolls.eu.

@@ -212,8 +212,8 @@ print.popPolls = function(x) {
 #'
 #' @param data polls object
 #' @param name trend name
-#' @param trendType trend function name
-#' @param trendArgs trend function arguments
+#' @param type trend function name
+#' @param args trend function arguments
 #' @param interpolations list of interpolations that should be applied to the trend
 #'
 #' @return polls object
@@ -237,23 +237,22 @@ print.popPolls = function(x) {
 #'
 #' @examples
 #' t = popRead('DE')
-#' t = popAddTrend(t, name='Kalman 0.05', type='kalman', args=list(sd = 0.05), )
-#' t = popAddTrend(t, name='Kalman raw', type='kalman', args=list(sd = 0.02), interpolations=list('lastInterpolation' = list()))
+#' t = popAddTrend(t, name='Kalman 0.003', type='kalman', args=list(sd = 0.003))
+#' t = popAddTrend(t, name='Kalman Raw', type='kalman', args=list(sd = 0.003), interpolations=list('lastInterpolation' = list()))
 #' plot(t)
 popAddTrend = function(data, name=NULL,
-                       trendType='kalman', trendArgs=list(),
+                       type='kalman', args=list(),
                        interpolations=list()) {
-    if (is.null(trendArgs$data))
-        trendArgs$data = data
+    if (is.null(args$data))
+        args$data = data
 
-    if (nrow(trendArgs$data$polls) == 0)
+    if (nrow(args$data$polls) == 0)
         stop('No polls')
 
     if (is.null(name))
-        tName = trendType
+        tName = type
 
-
-    trend = do.call(trendType, trendArgs)
+    trend = do.call(type, args)
 
     if (length(interpolations) > 0) {
         for (i in 1:length(interpolations)) {

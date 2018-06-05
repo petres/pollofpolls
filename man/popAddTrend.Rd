@@ -4,7 +4,7 @@
 \alias{popAddTrend}
 \title{Add Trend to Polls}
 \usage{
-popAddTrend(data, name = NULL, trendType = "kalman", trendArgs = list(),
+popAddTrend(data, name = NULL, type = "kalman", args = list(),
   interpolations = list())
 }
 \arguments{
@@ -12,9 +12,9 @@ popAddTrend(data, name = NULL, trendType = "kalman", trendArgs = list(),
 
 \item{name}{trend name}
 
-\item{trendType}{trend function name}
+\item{type}{trend function name}
 
-\item{trendArgs}{trend function arguments}
+\item{args}{trend function arguments}
 
 \item{interpolations}{list of interpolations that should be applied to the trend}
 }
