@@ -18,7 +18,7 @@ library(pollofpolls)
 popGetInfo()
 
 # Read Austrian National Council polls
-at = popRead('AT')
+at = popRead('AT-parliament')
 # Plot the polls
 plot(at)
 plot(at, as.Date(c('2017-06-01', '2018-06-01')))
