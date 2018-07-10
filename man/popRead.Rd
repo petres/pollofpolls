@@ -18,5 +18,5 @@ poll data
 Read Poll Data
 }
 \examples{
-popRead('DE')
+popRead('DE-parliament')
 }

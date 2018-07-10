@@ -1,15 +1,18 @@
 Package: pollofpolls
 Type: Package
 Title: Loading and Analyzing Polls
-Version: 0.3.1
+Version: 0.3.3
 Author: Peter Reschenhofer
 Maintainer: Peter Reschenhofer <pr@pollofpolls.eu>
 Description: Loads poll data from the website pollofpolls.eu.
     Provides some poll aggregation methods, which are also used at the pollofpolls.eu webpage.
 Depends:
-    data.table
+    data.table,
+    graphics
 Imports:
-    rjson
+    rjson,
+    stats,
+    utils
 License: GPL
 Encoding: UTF-8
 LazyData: true

@@ -1,5 +1,3 @@
-library(data.table)
-library(rjson)
 
 # URLs
 baseUrl = 'https://pollofpolls.eu'
@@ -9,8 +7,10 @@ baseInfoLoadUrl = paste(baseUrl, "get/info/%CODE%", sep="/")
 as.date = function(x, origin='1970-01-01')
     as.Date(x, origin=origin)
 
-toLong = function(data, what='polls')
+toLong = function(data, what='polls') {
+    value = NULL # WARNINGS
     melt(data[[what]], variable.name = "party", measure.vars=intersect(data$parties$code, colnames(data[[what]])))[!is.na(value)]
+}
 
 
 
@@ -20,10 +20,12 @@ toLong = function(data, what='polls')
 #' @param options options
 #' @param parties parties
 #' @param trends trends
+#' @param name name
+#' @param elections elections
 #'
 #' @return pop object
 #' @export
-#'
+#' @import data.table
 popCreate = function(polls = data.table(), options = list(measure = 'p'), parties = data.table(),
                      trends = list(), name = NULL, elections = data.table()) {
     r = list(
@@ -49,8 +51,10 @@ popCreate = function(polls = data.table(), options = list(measure = 'p'), partie
 #' @export
 #'
 #' @examples
-#' popRead('DE')
+#' popRead('DE-parliament')
+#' @import data.table
 popRead = function(code, load = c('polls', 'elections')) {
+    n = NULL; sd = NULL # WARNINGS
     info = rjson::fromJSON(readLines(gsub("%CODE%", code, baseInfoLoadUrl), warn=FALSE))
 
     parties = data.table()
@@ -64,12 +68,16 @@ popRead = function(code, load = c('polls', 'elections')) {
     if ('polls' %in% load) {
         if (info$count > 0) {
             t = gsub("%CODE%", code, basePollsLoadUrl)
-            polls = as.data.table(read.csv(url(t), as.is='source', colClasses=c('date' = 'Date')))
+            polls = as.data.table(utils::read.csv(url(t), as.is='source', colClasses=c('date' = 'Date')))
             polls[, `:=`(source = NULL,
                          n = as.integer(n),
                          sd = as.numeric(sd))]
-            for (p in parties$code)
-                polls[[p]] = as.numeric(polls[[p]]/100)
+            for (p in parties$code) {
+                if (p %in% colnames(polls))
+                    polls[[p]] = as.numeric(polls[[p]]/100)
+                else
+                    polls[[p]] = as.numeric(NA)
+            }
         }
     }
 
@@ -91,7 +99,9 @@ popRead = function(code, load = c('polls', 'elections')) {
 #'
 #' @return data table with infos
 #' @export
+#' @import data.table
 popGetInfo = function() {
+    code = NULL # WARNINGS
     t = rjson::fromJSON(readLines(paste(baseUrl, 'get/info', sep="/"), warn=FALSE))
     r = data.table()
     for (c in names(t)) {
@@ -105,18 +115,24 @@ popGetInfo = function() {
 
 #' Plot polls
 #'
-#' @param data Polls Data
-#' @param xlim
+#' @param x Polls Data
+#' @param ... xlim: Limit date range
 #'
 #' @export
 #'
 #' @examples
-#' t = popRead('DE')
+#' t = popRead('DE-parliament')
 #' plot(t)
 #' plot(t, xlim=as.Date(c('2018-01-01', '2018-05-01')))
-plot.popPolls = function(data, xlim=NULL) {
+#' @import data.table
+#' @import graphics
+plot.popPolls = function(x, ...) {
+    party = NULL; code = NULL; . = NULL; value = NULL # WARNINGS
+    data = x
     pollsExisting = nrow(data$polls) > 0
     trendsExisting = length(data$trends) > 0
+    dots = list(...)
+    xlim = dots$xlim
 
     if (pollsExisting) {
         pollsLong = toLong(data)
@@ -189,10 +205,12 @@ plot.popPolls = function(data, xlim=NULL) {
 
 #' Print popPolls object
 #'
-#' @param object
+#' @param x popPolls object
+#' @param ... ignored
 #'
 #' @export
-print.popPolls = function(x) {
+#' @import data.table
+print.popPolls = function(x, ...) {
     if (!is.null(x$name))
         cat(x$name, '\n\n')
 
@@ -236,10 +254,12 @@ print.popPolls = function(x) {
 #' \code{bernoulliConvInterpolation} - arguments: n = 20, k = 6
 #'
 #' @examples
-#' t = popRead('DE')
+#' t = popRead('DE-parliament')
 #' t = popAddTrend(t, name='Kalman 0.003', type='kalman', args=list(sd = 0.003))
-#' t = popAddTrend(t, name='Kalman Raw', type='kalman', args=list(sd = 0.003), interpolations=list('lastInterpolation' = list()))
+#' t = popAddTrend(t, name='Kalman Raw', type='kalman', args=list(sd = 0.003),
+#'                 interpolations=list('lastInterpolation' = list()))
 #' plot(t)
+#' @import data.table
 popAddTrend = function(data, name=NULL,
                        type='kalman', args=list(),
                        interpolations=list()) {

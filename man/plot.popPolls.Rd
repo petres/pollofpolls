@@ -4,18 +4,18 @@
 \alias{plot.popPolls}
 \title{Plot polls}
 \usage{
-\method{plot}{popPolls}(data, xlim = NULL)
+\method{plot}{popPolls}(x, ...)
 }
 \arguments{
-\item{data}{Polls Data}
+\item{x}{Polls Data}
 
-\item{xlim}{}
+\item{...}{xlim: Limit date range}
 }
 \description{
 Plot polls
 }
 \examples{
-t = popRead('DE')
+t = popRead('DE-parliament')
 plot(t)
 plot(t, xlim=as.Date(c('2018-01-01', '2018-05-01')))
 }

@@ -41,8 +41,9 @@ Available interpolations are:
 \code{bernoulliConvInterpolation} - arguments: n = 20, k = 6
 }
 \examples{
-t = popRead('DE')
-t = popAddTrend(t, name='Kalman 0.05', type='kalman', args=list(sd = 0.05), )
-t = popAddTrend(t, name='Kalman raw', type='kalman', args=list(sd = 0.02), interpolations=list('lastInterpolation' = list()))
+t = popRead('DE-parliament')
+t = popAddTrend(t, name='Kalman 0.003', type='kalman', args=list(sd = 0.003))
+t = popAddTrend(t, name='Kalman Raw', type='kalman', args=list(sd = 0.003),
+                interpolations=list('lastInterpolation' = list()))
 plot(t)
 }

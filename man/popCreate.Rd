@@ -16,6 +16,10 @@ popCreate(polls = data.table(), options = list(measure = "p"),
 \item{parties}{parties}
 
 \item{trends}{trends}
+
+\item{name}{name}
+
+\item{elections}{elections}
 }
 \value{
 pop object

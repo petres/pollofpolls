@@ -34,7 +34,9 @@
 #     return (result)
 # }
 
+#' @import data.table
 kalmanTime = function(partyData, sd) {
+    date = NULL
     tState = NULL
     tDate = NULL
 
@@ -57,7 +59,9 @@ kalmanTime = function(partyData, sd) {
     return (partyData[, k(.SD, .BY), by=date])
 }
 
+#' @import data.table
 kalman = function(data, sd = 0.003, interpolate = FALSE) {
+    n = NULL; value = NULL; party = NULL; changed = NULL; . = NULL; variance = NULL; # WARNINGS
     pollData = toLong(data)[, `:=`(
             firm = NULL,
             sd = NULL,

@@ -4,10 +4,12 @@
 \alias{print.popPolls}
 \title{Print popPolls object}
 \usage{
-\method{print}{popPolls}(x)
+\method{print}{popPolls}(x, ...)
 }
 \arguments{
-\item{object}{}
+\item{x}{popPolls object}
+
+\item{...}{ignored}
 }
 \description{
 Print popPolls object
