@@ -21,7 +21,7 @@ popGetInfo()
 at = popRead('AT-parliament')
 # Plot the polls
 plot(at)
-plot(at, as.Date(c('2017-06-01', '2018-06-01')))
+plot(at, xlim=as.Date(c('2017-06-01', '2018-06-01')))
 
 # Add trend to polls
 at = popAddTrend(at, name='Kalman 0.003', type='kalman', args=list(sd = 0.003))
