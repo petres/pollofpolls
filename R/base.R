@@ -126,7 +126,7 @@ popGetInfo = function() {
 #' plot(t, xlim=as.Date(c('2018-01-01', '2018-05-01')))
 #' @import data.table
 #' @import graphics
-plot.popPolls = function(x, ...) {
+plot.popPolls = function(x, ..., label=NULL) {
     party = NULL; code = NULL; . = NULL; value = NULL # WARNINGS
     data = x
     pollsExisting = nrow(data$polls) > 0
@@ -156,11 +156,13 @@ plot.popPolls = function(x, ...) {
 
 
     plot(NULL, type="n", xaxt = "n", yaxt="n", xlab="", ylab="",
-         xlim=xlim,
-         ylim=ylim)
-
-    if (!is.null(data$name))
+         xlim=xlim, ylim=ylim)
+    
+    if (!is.null(label)) {
+        title(label)
+    } else if (!is.null(data$name)) {
         title(data$name)
+    }
 
     xLabelsCount = 8
     diff = (xlim[2] - xlim[1])/xLabelsCount
