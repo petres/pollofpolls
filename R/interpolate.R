@@ -1,4 +1,5 @@
 #' @import data.table
+
 bernoulliConvInterpolation = function(trend, n = 20, k = 6) {
     party = NULL
     f = function(a) {
@@ -10,7 +11,6 @@ bernoulliConvInterpolation = function(trend, n = 20, k = 6) {
     return (trend[, f(.SD), by=party])
 }
 
-#' @import data.table
 linearInterpolation = function(trend) {
     party = NULL; . = NULL; value = NULL # WARNINGS
     f = function(a) {
@@ -19,6 +19,24 @@ linearInterpolation = function(trend) {
     }
 
     return (trend[, f(.SD), by=party])
+}
+
+extendLastNotNAEntry = function(trend) {
+    party = NULL; . = NULL; value = NULL # WARNINGS
+
+    dates = sort(unique(trend$date))
+    f = function(a, b) {
+        if (last(a$date) != max(dates)) {
+            lValue = last(a$value)
+            lDate = last(a$date)
+            nDate = dates[which(lDate == dates) + 1] - 1
+            if (nDate > lDate)
+                a = rbind(a, list(date = nDate, value = last(a$value), variance = NA))
+
+        }
+        a
+    }
+    return (trend[, f(.SD, .BY), by=party])
 }
 
 #' @import data.table

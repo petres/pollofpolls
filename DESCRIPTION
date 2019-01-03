@@ -1,8 +1,8 @@
 Package: pollofpolls
 Type: Package
 Title: Loading and Analyzing Polls
-Version: 0.3.3
-Author: Peter Reschenhofer
+Version: 0.4.0
+Author: Peter Reschenhofer <pr@pollofpolls.eu>
 Maintainer: Peter Reschenhofer <pr@pollofpolls.eu>
 Description: Loads poll data from the website pollofpolls.eu.
     Provides some poll aggregation methods, which are also used at the pollofpolls.eu webpage.
@@ -12,8 +12,10 @@ Depends:
 Imports:
     rjson,
     stats,
-    utils
+    utils,
+Suggests:
+    KFAS
 License: GPL
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1

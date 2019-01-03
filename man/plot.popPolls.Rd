@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{Polls Data}
 
-\item{...}{xlim: Limit date range}
+\item{...}{xlim: Limit date range and plot default args}
 }
 \description{
 Plot polls

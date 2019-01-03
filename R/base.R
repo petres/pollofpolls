@@ -1,17 +1,10 @@
+#' @import data.table
+#' @import graphics
 
 # URLs
 baseUrl = 'https://pollofpolls.eu'
 basePollsLoadUrl = paste(baseUrl, "get/polls/%CODE%/format/csv", sep="/")
 baseInfoLoadUrl = paste(baseUrl, "get/info/%CODE%", sep="/")
-
-as.date = function(x, origin='1970-01-01')
-    as.Date(x, origin=origin)
-
-toLong = function(data, what='polls') {
-    value = NULL # WARNINGS
-    melt(data[[what]], variable.name = "party", measure.vars=intersect(data$parties$code, colnames(data[[what]])))[!is.na(value)]
-}
-
 
 
 #' Create pop object
@@ -25,7 +18,6 @@ toLong = function(data, what='polls') {
 #'
 #' @return pop object
 #' @export
-#' @import data.table
 popCreate = function(polls = data.table(), options = list(measure = 'p'), parties = data.table(),
                      trends = list(), name = NULL, elections = data.table()) {
     r = list(
@@ -52,7 +44,6 @@ popCreate = function(polls = data.table(), options = list(measure = 'p'), partie
 #'
 #' @examples
 #' popRead('DE-parliament')
-#' @import data.table
 popRead = function(code, load = c('polls', 'elections')) {
     n = NULL; sd = NULL # WARNINGS
     info = rjson::fromJSON(readLines(gsub("%CODE%", code, baseInfoLoadUrl), warn=FALSE))
@@ -99,7 +90,6 @@ popRead = function(code, load = c('polls', 'elections')) {
 #'
 #' @return data table with infos
 #' @export
-#' @import data.table
 popGetInfo = function() {
     code = NULL # WARNINGS
     t = rjson::fromJSON(readLines(paste(baseUrl, 'get/info', sep="/"), warn=FALSE))
@@ -116,7 +106,7 @@ popGetInfo = function() {
 #' Plot polls
 #'
 #' @param x Polls Data
-#' @param ... xlim: Limit date range
+#' @param ... xlim: Limit date range and plot default args
 #'
 #' @export
 #'
@@ -124,8 +114,6 @@ popGetInfo = function() {
 #' t = popRead('DE-parliament')
 #' plot(t)
 #' plot(t, xlim=as.Date(c('2018-01-01', '2018-05-01')))
-#' @import data.table
-#' @import graphics
 plot.popPolls = function(x, ...) {
     party = NULL; code = NULL; . = NULL; value = NULL # WARNINGS
     data = x
@@ -136,40 +124,34 @@ plot.popPolls = function(x, ...) {
 
     if (pollsExisting) {
         pollsLong = toLong(data)
-
-        if (is.null(xlim))
-            xlim = c(min(data$polls$date), max(data$polls$date))
-
+        xlim = c(min(data$polls$date), max(data$polls$date))
         ylim = c(0, max(pollsLong$value, na.rm=TRUE)*1.25)
     } else {
         if (trendsExisting) {
             trend = data$trends[[1]]
-
-            if (is.null(xlim))
-                xlim = c(min(trend$date), max(trend$date))
-
+            xlim = c(min(trend$date), max(trend$date))
             ylim = c(0, max(trend$value, na.rm=TRUE)*1.25)
         } else {
             stop('No trend and no polls to plot')
         }
     }
 
+    stdPlotArgs = list(NULL,
+        type="n", xaxt = "n", yaxt = "n", xlab = "", ylab = "",
+        xlim = xlim, ylim = ylim, main = data$name
+    )
 
-    plot(NULL, type="n", xaxt = "n", yaxt="n", xlab="", ylab="",
-         xlim=xlim,
-         ylim=ylim)
-
-    if (!is.null(data$name))
-        title(data$name)
+    args = utils::modifyList(stdPlotArgs, dots)
+    do.call(plot, args)
 
     xLabelsCount = 8
-    diff = (xlim[2] - xlim[1])/xLabelsCount
-    xLabels =  xlim[1] + 0:xLabelsCount*diff
+    diff = (args$xlim[2] - args$xlim[1])/xLabelsCount
+    xLabels = args$xlim[1] + 0:xLabelsCount*diff
 
     if (data$options$measure == 's') {
-        axis(2, at=pretty(ylim), labels=pretty(ylim), las=TRUE)
+        axis(2, at=pretty(args$ylim), labels=pretty(args$ylim), las=TRUE)
     } else {
-        axis(2, at=pretty(ylim), labels=paste(pretty(ylim) * 100, '%'), las=TRUE)
+        axis(2, at=pretty(args$ylim), labels=paste(pretty(args$ylim) * 100, '%'), las=TRUE)
     }
     axis(1, at=xLabels, labels=format(xLabels, "%d. %b '%y"), cex.axis = .7, las = 2)
 
@@ -209,7 +191,6 @@ plot.popPolls = function(x, ...) {
 #' @param ... ignored
 #'
 #' @export
-#' @import data.table
 print.popPolls = function(x, ...) {
     if (!is.null(x$name))
         cat(x$name, '\n\n')
@@ -259,14 +240,13 @@ print.popPolls = function(x, ...) {
 #' t = popAddTrend(t, name='Kalman Raw', type='kalman', args=list(sd = 0.003),
 #'                 interpolations=list('lastInterpolation' = list()))
 #' plot(t)
-#' @import data.table
 popAddTrend = function(data, name=NULL,
                        type='kalman', args=list(),
                        interpolations=list()) {
     if (is.null(args$data))
         args$data = data
 
-    if (nrow(args$data$polls) == 0)
+    if ((nrow(args$data$polls) + nrow(args$data$elections))  == 0)
         stop('No polls')
 
     if (is.null(name))
