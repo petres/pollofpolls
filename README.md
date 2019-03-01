@@ -6,7 +6,7 @@ R package for poll retrieval from https://pollofpolls.eu and poll aggregation (t
 The development version can be easily installed with the ``devtools`` r-package:
 
 ```r
-devtools::install_git('https://github.com/petres/pollofpolls.git')
+devtools::install_github('https://github.com/petres/pollofpolls.git')
 ```
 
 ## Usage
