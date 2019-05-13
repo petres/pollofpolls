@@ -41,9 +41,12 @@ kalman = function(data, sd = 0.003) {
     toProb = 1
     if (!is.null(data$options) && data$options$measure == "s")
         toProb = data$options$normalize
-
-    pollData[, `:=`(var = getPollVar(value/toProb, n),
-                    n = NULL)]
+    
+    if(!is.null(data$options) && !data$options$by.party.var)
+        pollData[, `:=`(var = .25 / n, n = NULL)]
+    else      
+        pollData[, `:=`(var = getPollVar(value/toProb, n),
+                        n = NULL)]
 
     trendData = data.table()
 
