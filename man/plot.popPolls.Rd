@@ -7,15 +7,22 @@
 \method{plot}{popPolls}(x, ...)
 }
 \arguments{
-\item{x}{Polls Data}
+\item{x}{A \code{popPolls} object.}
 
-\item{...}{xlim: Limit date range and plot default args}
+\item{...}{Passed on to \code{\link[graphics:plot.default]{graphics::plot()}}, e.g. \code{xlim} to limit the date
+range. The y axis is scaled to the polls inside \code{xlim}.}
+}
+\value{
+Invisibly \code{x}.
 }
 \description{
-Plot polls
+Draws the individual polls as points and every trend added with
+\code{\link[=popAddTrend]{popAddTrend()}} (or already published by POLITICO) as a line.
 }
 \examples{
-t = popRead('DE-parliament')
-plot(t)
-plot(t, xlim=as.Date(c('2018-01-01', '2018-05-01')))
+\dontrun{
+de = popRead('DE-parliament')
+plot(de)
+plot(de, xlim = as.Date(c('2024-01-01', '2025-01-01')))
+}
 }

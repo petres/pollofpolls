@@ -4,11 +4,22 @@
 \alias{popGetInfo}
 \title{Get Info About Available Polls}
 \usage{
-popGetInfo()
+popGetInfo(refresh = FALSE)
+}
+\arguments{
+\item{refresh}{Whether the cached list should be rebuilt.}
 }
 \value{
-data table with infos
+A \code{data.table} with the columns \code{code}, \code{iso2}, \code{name}, \code{page} and
+\code{endpoint}.
 }
 \description{
-Get Info About Available Polls
+Lists the polls published by POLITICO. Building the list means visiting every
+country page once, which takes a while; the result is therefore cached for a
+day (see \code{\link[=popCacheClear]{popCacheClear()}}).
+}
+\examples{
+\dontrun{
+popGetInfo()
+}
 }

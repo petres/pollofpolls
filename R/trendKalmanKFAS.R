@@ -4,74 +4,66 @@ kalmanKFAS = function(data, sd = 0.003, smoothing = TRUE) {
     if (!requireNamespace("KFAS", quietly = TRUE))
         stop("Package \"KFAS\" is needed. Please install it.", call. = FALSE)
 
-    n = NULL; value = NULL; party = NULL; . = NULL; variance = NULL; # WARNINGS
-    # get polls
-    pollData = toLong(data)[, `:=`(
-            firm = NULL,
-            sd = NULL,
-            n = as.numeric(n)
-        )]
-    # set n to min if missing
-    m = min(pollData$n, na.rm = TRUE)
-    if (!is.finite(m))
-        m = 400
-    pollData[is.na(n), n := m]
-    rm(m)
-    # combine polls on same day
+    pollData = toLong(data)
+    if (nrow(pollData) == 0)
+        return(emptyLong())
+
+    if (!'n' %in% names(pollData))
+        pollData[, n := NA_real_]
+    pollData = pollData[, .(date, party, value, n = as.numeric(n))]
+
+    # polls without a sample size are treated as the least informative ones
+    smallest = suppressWarnings(min(pollData$n, na.rm = TRUE))
+    if (!is.finite(smallest))
+        smallest = .defaultSampleSize
+    pollData[is.na(n), n := smallest]
+
+    # combine polls published on the same day
     pollData = pollData[, .(n = sum(n), value = sum(n*value)/sum(n)), by=.(date, party)]
-    # get elections
-    electionData = toLong(data, 'elections')[, n := Inf]
-    # remove polls on election date
+
+    electionData = toLong(data, 'elections')
+    electionData[, n := Inf]
+    electionData = electionData[, .(date, party, n, value)]
+
+    # elections replace the polls published on the same day
     pollData = pollData[!date %in% electionData$date]
-    # merge polls and elections
-    pollData = rbind(pollData, electionData)
+    pollData = rbind(pollData, electionData, fill = TRUE)[order(date)]
 
-    pollData = pollData[order(date)]
+    toProb = toProbFactor(data, pollData)
+    pollData[, variance := getPollVar(value/toProb, n)]
 
-    toProb = 1
-    if (!is.null(data$options) && data$options$measure == "s")
-        toProb = data$options$normalize
-
-    pollData[, `:=`(variance = getPollVar(value/toProb, n),
-                    n = NULL)]
-
-    trendData = data.table()
-
+    trendData = list()
     SSMcustom = KFAS::SSMcustom
 
     for (p in data$parties$code) {
         partyData = pollData[party == p & !is.na(value)]
+        if (nrow(partyData) < 2)
+            next
 
-        if (nrow(partyData) > 0) {
-            dates = as.date(min(partyData$date):(max(partyData$date) + 1))
-            fullData = merge(partyData, data.table(date = dates), by="date", all=T)
+        dates = as.date(min(partyData$date):(max(partyData$date) + 1))
+        fullData = merge(partyData, data.table(date = dates), by="date", all=TRUE)
 
-            d1 = fullData[1, date]
-            a1 = fullData[1, value]
-            P1 = fullData[1, variance]
+        a1 = fullData[1, value]
+        P1 = fullData[1, variance]
 
-            modelData = fullData[, .(value, variance)]
-            modelData[1, `:=`(value = NA, variance = NA)]
-            modelData[is.na(variance), variance := 0]
-            m = KFAS::SSModel(modelData$value ~ -1 + SSMcustom(Z = 1, T = 1, R = 1, Q = (sd)**2, a1 = a1, P1 = P1),
-                               H = array(modelData$variance, c(1, 1, nrow(modelData))))
+        modelData = fullData[, .(value, variance)]
+        modelData[1, `:=`(value = NA, variance = NA)]
+        modelData[is.na(variance), variance := 0]
+        m = KFAS::SSModel(modelData$value ~ -1 + SSMcustom(Z = 1, T = 1, R = 1, Q = (sd)**2, a1 = a1, P1 = P1),
+                          H = array(modelData$variance, c(1, 1, nrow(modelData))))
 
-            k = KFAS::KFS(m, return_model = FALSE)
+        k = KFAS::KFS(m, return_model = FALSE)
 
-            if (smoothing) {
-                value = k$alphahat
-                variance = k$V
-            } else {
-                value = k$att
-                variance = k$Ptt
-            }
-
-            #trendData = rbind(trendData, data.table(date = dates, party = p, value = c(a1, value), variance = c(P1, variance)))
-            trendData = rbind(trendData, data.table(date = dates, party = p, value = c(value), variance = c(variance)))
-            #cbind(trendData, fullData)
+        if (smoothing) {
+            value = k$alphahat
+            variance = k$V
+        } else {
+            value = k$att
+            variance = k$Ptt
         }
+
+        trendData[[p]] = data.table(date = dates, party = p, value = c(value), variance = c(variance))
     }
 
-    return (trendData)
+    rbindlist(trendData, fill = TRUE)
 }
-

@@ -1,6 +1,25 @@
 #' @import data.table
+
+# Sample size assumed for polls that do not report one.
+.defaultSampleSize <- 400
+
+# Prepares polls and election results for the Kalman filters: one row per date,
+# party and observation, with the sampling variance attached.
+observations = function(data) {
+    pollData = toLong(data)
+    if (!'n' %in% names(pollData))
+        pollData[, n := NA_real_]
+    pollData = pollData[, .(date, party, value, n = as.numeric(n))]
+    pollData[is.na(n), n := .defaultSampleSize]
+
+    electionData = toLong(data, 'elections')
+    electionData[, n := Inf]
+    electionData = electionData[, .(date, party, value, n)]
+
+    rbind(pollData, electionData, fill = TRUE)[order(date)]
+}
+
 kalmanTime = function(partyData, sd) {
-    date = NULL
     tState = NULL
     tDate = NULL
 
@@ -16,7 +35,6 @@ kalmanTime = function(partyData, sd) {
             }
         }
         tDate <<- as.integer(d$date)
-        #cat(tDate)
         list('value' = tState[1], 'variance' = tState[2])
     }
 
@@ -25,53 +43,35 @@ kalmanTime = function(partyData, sd) {
 
 #' @import data.table
 kalman = function(data, sd = 0.003) {
-    n = NULL; value = NULL; party = NULL; changed = NULL; . = NULL; variance = NULL; # WARNINGS
-    pollData = toLong(data)[, `:=`(
-            firm = NULL,
-            sd = NULL,
-            n = as.numeric(n)
-        )]
-    pollData[is.na(n), n := 400]
+    pollData = observations(data)
+    if (nrow(pollData) == 0)
+        return(emptyLong())
 
-    electionData = toLong(data, 'elections')[, n := Inf]
-    pollData = rbind(pollData, electionData)
+    toProb = toProbFactor(data, pollData)
+    pollData[, var := getPollVar(value/toProb, n)]
 
-    pollData = pollData[order(date)]
-
-    toProb = 1
-    if (!is.null(data$options) && data$options$measure == "s")
-        toProb = data$options$normalize
-
-    pollData[, `:=`(var = getPollVar(value/toProb, n),
-                    n = NULL)]
-
-    trendData = data.table()
-
+    trendData = list()
     for (p in data$parties$code) {
         partyData = pollData[party == p & !is.na(value)]
-        if (nrow(partyData) > 0) {
-            result = kalmanTime(partyData, sd)
-            if (sum(!is.na(result$value)) < 2)
-                next
-            trendData = rbind(trendData, result[, .(date = as.date(date), party = p, value, variance)])
-        }
+        if (nrow(partyData) == 0)
+            next
+
+        result = kalmanTime(partyData, sd)
+        if (sum(!is.na(result$value)) < 2)
+            next
+
+        trendData[[p]] = result[, .(date = as.date(date), party = p, value, variance)]
     }
 
-    return (trendData)
+    rbindlist(trendData, fill = TRUE)
 }
 
 
 g_multiply = function(g1, g2)
     c((g1[2]*g2[1] + g2[2]*g1[1]) / (g1[2] + g2[2]), (g1[2] * g2[2]) / (g1[2] + g2[2]))
 
-# g_sum = function(g1, g2)
-#     c(g1[1] + g2[1], g1[2] + g2[2])
-
 k_update = function(prior, likelihood)
     g_multiply(likelihood, prior)
-
-# k_predict = function(state, sd)
-#     g_sum(state, c(0, sd**2))
 
 k_predict_days = function(state, sd, days = 1)
     c(state[1], state[2] + days*sd**2)

@@ -4,19 +4,36 @@
 \alias{popRead}
 \title{Read Poll Data}
 \usage{
-popRead(code, load = c("polls", "elections"))
+popRead(code, load = c("polls", "elections", "trends"), metadata = TRUE)
 }
 \arguments{
-\item{code}{Code of the poll data.}
+\item{code}{Code of the poll data, e.g. \code{"DE-parliament"}. See \code{\link[=popGetInfo]{popGetInfo()}}
+for the available codes.}
 
-\item{load}{what to load.}
+\item{load}{Which parts to load: any of \code{"polls"}, \code{"elections"} and
+\code{"trends"} (the trends already published by POLITICO).}
+
+\item{metadata}{Whether party colours and the descriptive name should be
+looked up on the website.}
 }
 \value{
-poll data
+A \code{popPolls} object. \verb{$polls} holds one row per poll with the columns
+\code{date}, \code{dateFrom}, \code{firm}, \code{n} (sample size) and one column per party,
+\verb{$elections} the same for election results, \verb{$parties} the party codes,
+names and colours and \verb{$trends} the published trends in long format.
 }
 \description{
-Read Poll Data
+Downloads a single Poll of Polls data set from POLITICO.
+}
+\details{
+Party colours and the descriptive name are not part of the data endpoint and
+are looked up on the corresponding website. That lookup needs one additional
+request, is cached (see \code{\link[=popCacheClear]{popCacheClear()}}) and can be switched off with
+\code{metadata = FALSE}.
 }
 \examples{
-popRead('DE-parliament')
+\dontrun{
+de = popRead('DE-parliament')
+plot(de)
+}
 }

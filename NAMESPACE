@@ -3,6 +3,7 @@
 S3method(plot,popPolls)
 S3method(print,popPolls)
 export(popAddTrend)
+export(popCacheClear)
 export(popCreate)
 export(popGetInfo)
 export(popRead)

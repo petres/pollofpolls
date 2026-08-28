@@ -4,46 +4,62 @@
 \alias{popAddTrend}
 \title{Add Trend to Polls}
 \usage{
-popAddTrend(data, name = NULL, type = "kalman", args = list(),
-  interpolations = list())
+popAddTrend(
+  data,
+  name = NULL,
+  type = "kalman",
+  args = list(),
+  interpolations = list()
+)
 }
 \arguments{
-\item{data}{polls object}
+\item{data}{A \code{popPolls} object.}
 
-\item{name}{trend name}
+\item{name}{Name of the trend. Defaults to a name built from \code{type} and the
+applied interpolations.}
 
-\item{type}{trend function name}
+\item{type}{Trend function, see details.}
 
-\item{args}{trend function arguments}
+\item{args}{Arguments passed on to the trend function.}
 
-\item{interpolations}{list of interpolations that should be applied to the trend}
+\item{interpolations}{Named list of interpolations that should be applied to
+the trend, see details.}
 }
 \value{
-polls object
+The \code{popPolls} object with the trend added to \verb{$trends}.
 }
 \description{
-Add Trend to Polls
+Calculates a poll aggregation and stores it in the \code{popPolls} object, where
+it is picked up by \code{\link[=plot.popPolls]{plot.popPolls()}}.
 }
 \details{
-Available trend function names are:
+Available trend functions are:
 
-\code{kalman} - arguments: sd = 0.03
-
-\code{weightedMeanLastDays} - arguments: days = 30, maxObs = Inf
-
+\describe{
+\item{\code{kalman}}{Kalman filter, arguments: \code{sd = 0.003}.}
+\item{\code{kalmanKFAS}}{Kalman filter based on the \pkg{KFAS} package,
+arguments: \code{sd = 0.003}, \code{smoothing = TRUE}.}
+\item{\code{weightedMeanLastDays}}{Linearly weighted rolling mean, arguments:
+\code{days = 30}, \code{maxObs = Inf}.}
+\item{\code{ident}}{Plain mean of all polls published on the same day, no
+arguments.}
+}
 
 Available interpolations are:
 
-\code{lastInterpolation} - no arguments.
-
-\code{linearInterpolation} - no arguments.
-
-\code{bernoulliConvInterpolation} - arguments: n = 20, k = 6
+\describe{
+\item{\code{lastInterpolation}}{Carries the last value forward, no arguments.}
+\item{\code{linearInterpolation}}{Linear interpolation, no arguments.}
+\item{\code{bernoulliConvInterpolation}}{Binomial smoothing, arguments:
+\code{n = 20}, \code{k = 6}.}
+}
 }
 \examples{
-t = popRead('DE-parliament')
-t = popAddTrend(t, name='Kalman 0.003', type='kalman', args=list(sd = 0.003))
-t = popAddTrend(t, name='Kalman Raw', type='kalman', args=list(sd = 0.003),
-                interpolations=list('lastInterpolation' = list()))
-plot(t)
+\dontrun{
+de = popRead('DE-parliament')
+de = popAddTrend(de, name = 'Kalman 0.003', type = 'kalman', args = list(sd = 0.003))
+de = popAddTrend(de, name = 'Kalman Raw', type = 'kalman', args = list(sd = 0.003),
+                 interpolations = list('lastInterpolation' = list()))
+plot(de)
+}
 }

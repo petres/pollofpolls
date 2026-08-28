@@ -7,10 +7,16 @@
 \method{print}{popPolls}(x, ...)
 }
 \arguments{
-\item{x}{popPolls object}
+\item{x}{A \code{popPolls} object.}
 
-\item{...}{ignored}
+\item{...}{Ignored.}
+}
+\value{
+Invisibly \code{x}.
 }
 \description{
 Print popPolls object
+}
+\examples{
+print(popCreate())
 }

@@ -1,5 +1,16 @@
 /tmp
 /R/test
+
+# RStudio project files (not used, see .Rbuildignore)
+*.Rproj
+
+# Plots written by Rscript when no device is opened explicitly
+Rplots.pdf
+
+# R CMD check / build artefacts
+*.Rcheck/
+*.tar.gz
+
 # Created by https://www.gitignore.io/api/r
 
 ### R ###

@@ -4,26 +4,37 @@
 \alias{popCreate}
 \title{Create pop object}
 \usage{
-popCreate(polls = data.table(), options = list(measure = "p"),
-  parties = data.table(), trends = list(), name = NULL,
-  elections = data.table())
+popCreate(
+  polls = data.table(),
+  options = list(measure = "p"),
+  parties = data.table(),
+  trends = list(),
+  name = NULL,
+  elections = data.table()
+)
 }
 \arguments{
-\item{polls}{polls}
+\item{polls}{\code{data.table} of polls, one row per poll and one column per party.}
 
-\item{options}{options}
+\item{options}{List of options as published by the endpoint, notably
+\code{measure} (\code{"p"} for percentages, \code{"s"} for seats).}
 
-\item{parties}{parties}
+\item{parties}{\code{data.table} with the columns \code{code}, \code{name} and \code{color}.}
 
-\item{trends}{trends}
+\item{trends}{Named list of trends, each a long \code{data.table} with the
+columns \code{date}, \code{party} and \code{value}.}
 
-\item{name}{name}
+\item{name}{Name of the poll, used as plot title.}
 
-\item{elections}{elections}
+\item{elections}{\code{data.table} of election results in the same shape as \code{polls}.}
 }
 \value{
-pop object
+An object of class \code{popPolls}.
 }
 \description{
-Create pop object
+Bundles polls, parties, elections and trends into the \code{popPolls} object used
+by \code{\link[=plot.popPolls]{plot.popPolls()}} and \code{\link[=popAddTrend]{popAddTrend()}}. Normally created by \code{\link[=popRead]{popRead()}}.
+}
+\examples{
+popCreate()
 }
