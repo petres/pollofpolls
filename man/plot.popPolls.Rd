@@ -4,7 +4,7 @@
 \alias{plot.popPolls}
 \title{Plot polls}
 \usage{
-\method{plot}{popPolls}(x, ..., bands = TRUE, level = 0.95)
+\method{plot}{popPolls}(x, ..., bands = TRUE, level = 0.95, events = TRUE)
 }
 \arguments{
 \item{x}{A \code{popPolls} object.}
@@ -16,6 +16,8 @@ end of the data range. The y axis is scaled to the polls inside \code{xlim}.}
 \item{bands}{Whether uncertainty bands should be drawn.}
 
 \item{level}{Coverage of the uncertainty bands.}
+
+\item{events}{Whether events should be marked.}
 }
 \value{
 Invisibly \code{x}.
@@ -23,7 +25,8 @@ Invisibly \code{x}.
 \description{
 Draws the individual polls as points and every trend added with
 \code{\link[=popAddTrend]{popAddTrend()}} (or already published by POLITICO) as a line. Trends that
-come with a variance, such as \code{kalman}, are drawn with an uncertainty band.
+come with a variance, such as \code{kalman}, are drawn with an uncertainty band,
+the events in \code{x$events} as vertical lines.
 }
 \examples{
 \dontrun{

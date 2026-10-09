@@ -1,7 +1,8 @@
 #' Plot polls with ggplot2
 #'
 #' The \pkg{ggplot2} counterpart of [plot.popPolls()]: polls as points, trends
-#' as lines and, for trends with a variance, uncertainty bands. The result is
+#' as lines, for trends with a variance, uncertainty bands and the events in
+#' `object$events` as vertical lines. The result is
 #' an ordinary ggplot object that can be extended with further layers, scales
 #' and themes.
 #'
@@ -11,6 +12,7 @@
 #' @param level Coverage of the uncertainty bands.
 #' @param xlim Date range to show, dates or ISO date strings; `NA` keeps the
 #'   respective end of the data range.
+#' @param events Whether events should be marked.
 #'
 #' @return A `ggplot` object.
 #' @method autoplot popPolls
@@ -23,7 +25,7 @@
 #' de = popAddTrend(de, name = 'kalman', type = 'kalman')
 #' autoplot(de, xlim = c('2024-01-01', NA)) + theme_minimal()
 #' }
-autoplot.popPolls = function(object, ..., bands = TRUE, level = 0.95, xlim = NULL) {
+autoplot.popPolls = function(object, ..., bands = TRUE, level = 0.95, xlim = NULL, events = TRUE) {
     if (!requireNamespace('ggplot2', quietly = TRUE))
         stop('Package "ggplot2" is needed. Please install it.', call. = FALSE)
 
@@ -36,7 +38,15 @@ autoplot.popPolls = function(object, ..., bands = TRUE, level = 0.95, xlim = NUL
     colors = stats::setNames(parties$color, parties$code)
     labels = stats::setNames(parties$name, parties$code)
 
+    dates = dateLimits(c(polls$date, trends$date), xlim)
+    visible = function(d) d[date >= dates[1] & date <= dates[2]]
+    shownEvents = if (events && NROW(object$events) > 0) visible(object$events) else NULL
+
     plot = ggplot2::ggplot(mapping = ggplot2::aes(date, value, colour = party))
+
+    if (NROW(shownEvents) > 0)
+        plot = plot + ggplot2::geom_vline(data = shownEvents, ggplot2::aes(xintercept = date),
+                                          colour = 'grey60', linetype = 'dotted', linewidth = 0.4)
 
     if (bands && nrow(trends) > 0) {
         bounds = trendBounds(trends, level)[!is.na(lower)]
@@ -61,9 +71,12 @@ autoplot.popPolls = function(object, ..., bands = TRUE, level = 0.95, xlim = NUL
             ggplot2::scale_linetype_discrete(name = NULL, guide = if (multiple) 'legend' else 'none')
     }
 
+    if (NROW(shownEvents) > 0)
+        plot = plot + ggplot2::geom_text(data = shownEvents, ggplot2::aes(date, Inf, label = name),
+                                         inherit.aes = FALSE, angle = 90, hjust = 1.05, vjust = -0.4,
+                                         size = 2.5, colour = 'grey40')
+
     # like plot(), the y axis is scaled to the data inside the date range
-    dates = dateLimits(c(polls$date, trends$date), xlim)
-    visible = function(d) d[date >= dates[1] & date <= dates[2]]
     values = c(visible(polls)$value, visible(trends)$value)
     ylim = if (any(!is.na(values))) c(0, max(values, na.rm = TRUE)*1.1) else NULL
     # parties that are not polled any more are left out of the legend

@@ -9,6 +9,7 @@ reference:
       - popRead
       - popGetInfo
       - popDownload
+      - popRenameFirms
       - popCacheClear
   - title: Trends
     contents:
@@ -17,8 +18,10 @@ reference:
     contents:
       - popLatest
       - popSeats
+      - popCoalitions
       - popHouseEffects
       - popFirms
+      - popAccuracy
       - popLong
   - title: Plotting
     contents:

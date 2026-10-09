@@ -3,7 +3,7 @@ test_that('popRead parses the endpoint payload', {
 
     expect_s3_class(de, 'popPolls')
     expect_equal(nrow(de$polls), 60)
-    expect_equal(names(de$polls)[1:4], c('date', 'dateFrom', 'firm', 'n'))
+    expect_equal(names(de$polls)[1:5], c('date', 'dateFrom', 'firm', 'firmRaw', 'n'))
     expect_true(all(c('Union', 'SPD', 'GRUENE', 'AfD') %in% names(de$polls)))
     expect_s3_class(de$polls$date, 'Date')
     expect_false(is.unsorted(de$polls$date))

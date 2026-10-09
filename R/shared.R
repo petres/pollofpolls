@@ -23,9 +23,13 @@ toLong = function(data, what='polls') {
 }
 
 # Variance of a share estimated from a sample of size n. Elections are passed in
-# with n = Inf and therefore treated as exact.
-getPollVar = function(p, n)
+# with n = Inf and therefore treated as exact. A poll cannot measure a share
+# more precisely than one respondent, so shares of 0 (or shares pushed to 0 by
+# a house effect adjustment) do not turn a poll into an exact observation.
+getPollVar = function(p, n) {
+    p = pmin(pmax(p, 1/n), 1 - 1/n)
     p*(1-p)/n
+}
 
 # Polls are stored as shares for percentage based polls and as absolute numbers
 # for seat based ones; the latter have to be scaled before getPollVar() is used.

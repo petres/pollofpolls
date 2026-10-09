@@ -104,3 +104,9 @@ test_that('poll data is only cached if asked for', {
     expect_equal(second$polls, first$polls)
     expect_equal(second$retrieved, first$retrieved)
 })
+
+test_that('a refused request explains the blocking of cloud servers', {
+    local_mocked_bindings(httpGet = function(url) response(403L), .package = 'pollofpolls')
+
+    expect_error(pollofpolls:::fetchUrl('https://example.org/'), 'refuses requests from many cloud servers')
+})

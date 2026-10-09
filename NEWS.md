@@ -1,3 +1,40 @@
+# pollofpolls 0.7.0
+
+## New features
+
+* Firm names that only differ in case, accents, punctuation or white space
+  (`"INSA/YouGov"` and `"INSA YouGov"`, `"Tecnè"` and `"Tecne"`) are merged
+  under their most frequent spelling; the published name is kept in the new
+  `firmRaw` column. `popRenameFirms()` and `options(pollofpolls.firms)` merge
+  firms beyond that. `popFirms()` lists the spellings of every firm.
+* Polls without a sample size (a quarter of all polls, more than half in IT,
+  NL and SE) are weighted with the median sample size of their firm instead of
+  400 respondents in the Kalman trends. Out of sample, on 110 elections, this
+  is slightly more accurate. `missingSampleSize = 400` reproduces POLITICO's
+  trends exactly.
+* `popRead()` reads the events POLITICO marks in its charts into `$events`;
+  `plot()` and `autoplot()` show them as dotted lines (`events = FALSE` to
+  switch them off).
+* `popSeats(simulations = )` turns the uncertainty of the trend into seat
+  ranges and the probability of passing the threshold. `popCoalitions()` gives
+  the seats and the probability of a majority of coalitions, either given ones
+  or every plausible combination of up to three parties.
+* `popAccuracy()` evaluates trends and firms against past election results,
+  out of sample: the trends only see the polls published before each election.
+* `popHouseEffects()` estimates trend and house effects together, so that a
+  firm publishing many polls can no longer pull the trend towards itself. The
+  effects are relative to the average firm. `popAddTrend(houseEffects = TRUE)`
+  corrects the polls by them before calculating a trend. This removes the
+  differences between firms, not their common errors: out of sample, the
+  corrected trends were not closer to election results.
+* A refused request (HTTP 403) explains that POLITICO blocks many cloud
+  servers and how to work around it.
+
+## Bug fixes
+
+* A poll share of 0 no longer turns a poll into an exact observation in the
+  Kalman trends.
+
 # pollofpolls 0.6.0
 
 ## New features

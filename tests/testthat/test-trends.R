@@ -65,7 +65,9 @@ test_that('ident averages polls published on the same day', {
 
 test_that('the kalman filter reproduces the trend published by POLITICO', {
     ch = withFixtures(popRead('CH-parliament', metadata = FALSE))
-    ours = popAddTrend(ch, name = 'ours', type = 'kalman')$trends$ours
+    # POLITICO assumes 400 respondents for polls without sample size
+    ours = popAddTrend(ch, name = 'ours', type = 'kalman',
+                       args = list(missingSampleSize = 400))$trends$ours
 
     both = merge(ours, ch$trends$kalman, by = c('date', 'party'))
     expect_gt(nrow(both), 300)
@@ -74,7 +76,8 @@ test_that('the kalman filter reproduces the trend published by POLITICO', {
 
 test_that('the kalman smoother reproduces the smoothed trend published by POLITICO', {
     ch = withFixtures(popRead('CH-parliament', metadata = FALSE))
-    ours = popAddTrend(ch, name = 'ours', type = 'kalman', args = list(smoothing = TRUE),
+    ours = popAddTrend(ch, name = 'ours', type = 'kalman',
+                       args = list(smoothing = TRUE, missingSampleSize = 400),
                        interpolations = list(linearInterpolation = list()))$trends$ours
 
     both = merge(ours, ch$trends$kalmanSmooth, by = c('date', 'party'))

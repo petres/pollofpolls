@@ -6,29 +6,38 @@
 \usage{
 popRead(
   code,
-  load = c("polls", "elections", "trends"),
+  load = c("polls", "elections", "trends", "events"),
   metadata = TRUE,
-  dir = NULL
+  dir = NULL,
+  firms = getOption("pollofpolls.firms")
 )
 }
 \arguments{
 \item{code}{Code of the poll data, e.g. \code{"DE-parliament"}. See \code{\link[=popGetInfo]{popGetInfo()}}
 for the available codes.}
 
-\item{load}{Which parts to load: any of \code{"polls"}, \code{"elections"} and
-\code{"trends"} (the trends already published by POLITICO).}
+\item{load}{Which parts to load: any of \code{"polls"}, \code{"elections"},
+\code{"trends"} (the trends already published by POLITICO) and \code{"events"}.}
 
 \item{metadata}{Whether party colours and the descriptive name should be
 looked up on the website.}
 
 \item{dir}{Directory with the files written by \code{\link[=popDownload]{popDownload()}}. If given,
 the data is read from \verb{<dir>/<code>.json} instead of being downloaded.}
+
+\item{firms}{Named character vector of firms to rename, see
+\code{\link[=popRenameFirms]{popRenameFirms()}}.
+
+Firm names that only differ in case, accents, punctuation and white space
+are merged under their most frequent spelling.}
 }
 \value{
 A \code{popPolls} object. \verb{$polls} holds one row per poll with the columns
-\code{date}, \code{dateFrom}, \code{firm}, \code{n} (sample size) and one column per party,
-\verb{$elections} the same for election results, \verb{$parties} the party codes,
-names and colours and \verb{$trends} the published trends in long format.
+\code{date}, \code{dateFrom}, \code{firm}, \code{firmRaw} (the firm as published), \code{n} (sample
+size) and one column per party, \verb{$elections} the same for election
+results, \verb{$parties} the party codes, names and colours, \verb{$trends} the
+published trends in long format and \verb{$events} the events POLITICO marks in
+its charts.
 }
 \description{
 Downloads a single Poll of Polls data set from POLITICO, or reads one saved

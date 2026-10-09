@@ -1,7 +1,7 @@
 Package: pollofpolls
 Type: Package
 Title: Load and Analyse European Poll of Polls Data
-Version: 0.6.0
+Version: 0.7.0
 Authors@R: person(given = "Peter",
                   family = "Reschenhofer",
                   role = c("aut", "cre"),
@@ -9,8 +9,9 @@ Authors@R: person(given = "Peter",
 Description: Downloads national voting intention polls published by POLITICO's
     "Poll of Polls" project and provides poll aggregation methods (Kalman
     filtering and smoothing, weighted rolling means) similar to those used by
-    POLITICO and the original pollofpolls.eu website, seat projections and
-    house effect estimates. Polls, election results and trends are returned as
+    POLITICO and the original pollofpolls.eu website, seat projections with
+    coalition probabilities, house effect estimates and corrections, and
+    out-of-sample evaluations against election results. Polls, election results and trends are returned as
     'data.table' objects and can be visualised with base graphics or
     'ggplot2'.
 URL: https://github.com/petres/pollofpolls, https://petres.github.io/pollofpolls/

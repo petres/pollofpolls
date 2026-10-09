@@ -79,7 +79,7 @@ test_that('popFirms lists the polling firms', {
     de = readTestPolls()
     firms = popFirms(de)
 
-    expect_named(firms, c('firm', 'polls', 'first', 'last', 'sampleSize'))
+    expect_named(firms, c('firm', 'polls', 'first', 'last', 'sampleSize', 'spellings'))
     expect_equal(sum(firms$polls), nrow(de$polls))
     expect_false(is.unsorted(rev(firms$polls)))
     expect_true(all(firms$first <= firms$last))
@@ -111,4 +111,32 @@ test_that('popHouseEffects can compare with a published trend', {
 
     expect_gt(nrow(effects), 0)
     expect_true(all(effects$party %in% de$parties$code))
+})
+
+test_that('popHouseEffects is not fooled by a firm that publishes most polls', {
+    polls = data.table(date = as.Date('2024-01-01') + 0:99, n = 1000L,
+                       firm = c(rep('Big', 8), 'Small', 'Other'))
+    polls[, A := 0.30 + ifelse(firm == 'Big', 0.02, 0)]
+    polls[, B := 1 - A]
+    x = makePolls(polls)
+    x$trends = list(consensus = pollofpolls:::kalman(x, smoothing = TRUE))
+
+    joint = popHouseEffects(x)[party == 'A']
+    onePass = popHouseEffects(x, trend = 'consensus')[party == 'A']
+    # relative to the average of the three firms, Big is 2/3 of 2 points too high
+    expect_equal(joint[firm == 'Big']$effect, 0.02*2/3, tolerance = 0.05)
+    expect_lt(onePass[firm == 'Big']$effect, 0.01)
+    expect_equal(sum(joint$effect), 0, tolerance = 1e-6)
+})
+
+test_that('popAddTrend can correct the polls by the house effects', {
+    polls = data.table(date = as.Date('2024-01-01') + 0:59, firm = c('High', 'Low'), n = 1000L)
+    polls[, A := 0.30 + ifelse(firm == 'High', 0.03, -0.03) + 0.0005*seq_len(.N)]
+    polls[, B := 1 - A]
+    x = popAddTrend(makePolls(polls), houseEffects = TRUE)
+    x = popAddTrend(x)
+
+    expect_named(x$trends, c('kalman-adjusted', 'kalman'))
+    roughness = function(trend) stats::sd(diff(trend[party == 'A']$value))
+    expect_lt(roughness(x$trends[['kalman-adjusted']]), roughness(x$trends$kalman)/3)
 })

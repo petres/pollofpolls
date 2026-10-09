@@ -73,13 +73,15 @@ partyColumns = function(entries, partyCodes, valueScale) {
     stats::setNames(columns, partyCodes)
 }
 
-parsePolls = function(entries, partyCodes, valueScale) {
+parsePolls = function(entries, partyCodes, valueScale, firms = NULL) {
     if (length(entries) == 0)
         return(data.table())
 
+    firmRaw = fieldValues(entries, 'firm')
     polls = data.table(date = safeDate(fieldValues(entries, 'date')),
                        dateFrom = safeDate(fieldValues(entries, 'date_from')),
-                       firm = cleanText(fieldValues(entries, 'firm')),
+                       firm = renameFirms(unifyFirms(cleanText(firmRaw)), firms),
+                       firmRaw = firmRaw,
                        n = safeInteger(fieldValues(entries, 'sample_size')))
     if (length(partyCodes) > 0)
         polls[, (partyCodes) := partyColumns(entries, partyCodes, valueScale)]
@@ -106,6 +108,19 @@ parseElections = function(entries, partyCodes, valueScale) {
         elections[, (partyCodes) := partyColumns(entries, partyCodes, valueScale)]
 
     setorder(elections[!is.na(date)], 'date')
+}
+
+emptyEvents = function()
+    data.table(date = as.Date(character()), name = character())
+
+# Events such as elections or scandals, which POLITICO marks in its charts.
+parseEvents = function(entries) {
+    if (length(entries) == 0)
+        return(emptyEvents())
+
+    events = data.table(date = safeDate(fieldValues(entries, 'date')),
+                        name = cleanText(fieldValues(entries, 'name_short')))
+    setorder(events[!is.na(date) & !is.na(name)], 'date')
 }
 
 parseTrend = function(entries, valueScale) {
@@ -146,6 +161,7 @@ readPayload = function(code, dir) {
 #'   columns `date`, `party`, `value` and optionally `variance`.
 #' @param name Name of the poll, used as plot title.
 #' @param elections `data.table` of election results in the same shape as `polls`.
+#' @param events `data.table` of events with the columns `date` and `name`.
 #' @param code Poll code the data was read for.
 #' @param retrieved Time the data was downloaded.
 #'
@@ -156,7 +172,7 @@ readPayload = function(code, dir) {
 #' popCreate()
 popCreate = function(polls = data.table(), options = list(measure = 'p'), parties = data.table(),
                      trends = list(), name = NULL, elections = data.table(),
-                     code = NULL, retrieved = NULL) {
+                     events = emptyEvents(), code = NULL, retrieved = NULL) {
     r = list(
         polls = polls,
         options = options,
@@ -164,6 +180,7 @@ popCreate = function(polls = data.table(), options = list(measure = 'p'), partie
         trends = trends,
         name = name,
         elections = elections,
+        events = events,
         code = code,
         retrieved = retrieved
     )
@@ -188,17 +205,24 @@ popCreate = function(polls = data.table(), options = list(measure = 'p'), partie
 #'
 #' @param code Code of the poll data, e.g. `"DE-parliament"`. See [popGetInfo()]
 #'   for the available codes.
-#' @param load Which parts to load: any of `"polls"`, `"elections"` and
-#'   `"trends"` (the trends already published by POLITICO).
+#' @param load Which parts to load: any of `"polls"`, `"elections"`,
+#'   `"trends"` (the trends already published by POLITICO) and `"events"`.
 #' @param metadata Whether party colours and the descriptive name should be
 #'   looked up on the website.
 #' @param dir Directory with the files written by [popDownload()]. If given,
 #'   the data is read from `<dir>/<code>.json` instead of being downloaded.
+#' @param firms Named character vector of firms to rename, see
+#'   [popRenameFirms()].
+#'
+#' Firm names that only differ in case, accents, punctuation and white space
+#' are merged under their most frequent spelling.
 #'
 #' @return A `popPolls` object. `$polls` holds one row per poll with the columns
-#'   `date`, `dateFrom`, `firm`, `n` (sample size) and one column per party,
-#'   `$elections` the same for election results, `$parties` the party codes,
-#'   names and colours and `$trends` the published trends in long format.
+#'   `date`, `dateFrom`, `firm`, `firmRaw` (the firm as published), `n` (sample
+#'   size) and one column per party, `$elections` the same for election
+#'   results, `$parties` the party codes, names and colours, `$trends` the
+#'   published trends in long format and `$events` the events POLITICO marks in
+#'   its charts.
 #' @export
 #'
 #' @examples
@@ -210,7 +234,8 @@ popCreate = function(polls = data.table(), options = list(measure = 'p'), partie
 #' popDownload('polls', codes = 'AT-parliament')
 #' at = popRead('AT-parliament', dir = 'polls', metadata = FALSE)
 #' }
-popRead = function(code, load = c('polls', 'elections', 'trends'), metadata = TRUE, dir = NULL) {
+popRead = function(code, load = c('polls', 'elections', 'trends', 'events'), metadata = TRUE,
+                   dir = NULL, firms = getOption('pollofpolls.firms')) {
     if (!is.character(code) || length(code) != 1 || is.na(code) || !nzchar(code))
         stop('`code` must be a single poll code such as "DE-parliament", use lapply() to read several',
              call. = FALSE)
@@ -261,11 +286,15 @@ popRead = function(code, load = c('polls', 'elections', 'trends'), metadata = TR
 
     polls = data.table()
     if ('polls' %in% load)
-        polls = parsePolls(raw$polls, partyCodes, valueScale)
+        polls = parsePolls(raw$polls, partyCodes, valueScale, firms)
 
     elections = data.table()
     if ('elections' %in% load)
         elections = parseElections(raw$results, partyCodes, valueScale)
+
+    events = emptyEvents()
+    if ('events' %in% load)
+        events = parseEvents(raw$events)
 
     trends = list()
     if ('trends' %in% load && length(raw$trends) > 0) {
@@ -283,7 +312,7 @@ popRead = function(code, load = c('polls', 'elections', 'trends'), metadata = TR
         name = paste(pollOptions$iso2, code, sep = ' - ')
 
     popCreate(polls, pollOptions, parties, trends, name = name, elections = elections,
-              code = code, retrieved = payload$retrieved)
+              events = events, code = code, retrieved = payload$retrieved)
 }
 
 #' Get Info About Available Polls
@@ -320,7 +349,8 @@ popGetInfo = function(refresh = FALSE) {
 #'
 #' Draws the individual polls as points and every trend added with
 #' [popAddTrend()] (or already published by POLITICO) as a line. Trends that
-#' come with a variance, such as `kalman`, are drawn with an uncertainty band.
+#' come with a variance, such as `kalman`, are drawn with an uncertainty band,
+#' the events in `x$events` as vertical lines.
 #'
 #' @param x A `popPolls` object.
 #' @param ... Passed on to [graphics::plot()], e.g. `xlim` to limit the date
@@ -328,6 +358,7 @@ popGetInfo = function(refresh = FALSE) {
 #'   end of the data range. The y axis is scaled to the polls inside `xlim`.
 #' @param bands Whether uncertainty bands should be drawn.
 #' @param level Coverage of the uncertainty bands.
+#' @param events Whether events should be marked.
 #'
 #' @return Invisibly `x`.
 #' @export
@@ -339,7 +370,7 @@ popGetInfo = function(refresh = FALSE) {
 #' plot(de)
 #' plot(de, xlim = c('2024-01-01', NA), level = 0.9)
 #' }
-plot.popPolls = function(x, ..., bands = TRUE, level = 0.95) {
+plot.popPolls = function(x, ..., bands = TRUE, level = 0.95, events = TRUE) {
     data = x
     pollsExisting = nrow(data$polls) > 0
     trendsExisting = length(data$trends) > 0
@@ -381,6 +412,10 @@ plot.popPolls = function(x, ..., bands = TRUE, level = 0.95) {
     partyColor = function(p, alpha = 1)
         grDevices::adjustcolor(data$parties[code == p]$color, alpha.f = alpha)
 
+    shownEvents = if (events && NROW(data$events) > 0) inRange(data$events) else NULL
+    if (NROW(shownEvents) > 0)
+        abline(v = shownEvents$date, col = 'grey70', lty = 3)
+
     alphaPoints = 0.67
     if (trendsExisting) {
         alphaPoints = 0.33
@@ -420,12 +455,18 @@ plot.popPolls = function(x, ..., bands = TRUE, level = 0.95) {
         }
     }
 
+    # labelled from the top down, the legend is drawn on top of them
+    if (NROW(shownEvents) > 0)
+        text(shownEvents$date, args$ylim[2], shownEvents$name, srt = 90, adj = c(1, -0.4),
+             cex = 0.6, col = 'grey40')
+
     # parties that are not polled any more are left out of the legend
     visible = c(inRange(pollsLong)$party, inRange(trendsLong)$party)
     shown = data$parties$code %in% visible
     if (any(shown))
         legend('topleft', legend = data$parties$name[shown], fill = data$parties$color[shown],
-               bty = 'n', cex = 0.75, ncol = 2)
+               bg = grDevices::adjustcolor('white', alpha.f = 0.8), box.col = NA,
+               cex = 0.75, ncol = 2)
 
     invisible(x)
 }
@@ -454,6 +495,8 @@ print.popPolls = function(x, ...) {
         cat('Elections:', format(x$elections$date), '\n')
     if (length(x$trends) > 0)
         cat('Trends:', paste(names(x$trends), collapse = ', '), '\n')
+    if (NROW(x$events) > 0)
+        cat('Events:', NROW(x$events), '\n')
 
     cat('\n')
     invisible(x)
@@ -472,6 +515,11 @@ print.popPolls = function(x, ...) {
 #' @param args Arguments passed on to the trend function.
 #' @param interpolations Named list of interpolations that should be applied to
 #'   the trend, see details.
+#' @param houseEffects Whether the polls should be corrected by the house
+#'   effects of their firms (see [popHouseEffects()]) before the trend is
+#'   calculated. The correction removes the differences between the firms, not
+#'   the errors they share, so it does not necessarily bring the trend closer
+#'   to election results; see [popAccuracy()].
 #'
 #' @return The `popPolls` object with the trend added to `$trends`.
 #' @export
@@ -481,14 +529,17 @@ print.popPolls = function(x, ...) {
 #'
 #' \describe{
 #'   \item{`kalman`}{Kalman filter, arguments: `sd = 0.003`, the daily standard
-#'     deviation of the true support on the share scale, and
-#'     `smoothing = FALSE`. With `smoothing = TRUE` every estimate takes the
-#'     later polls into account as well (Rauch-Tung-Striebel smoother). The
-#'     estimates are calculated for the dates with polls only; together with
-#'     `linearInterpolation` the smoothed trend reproduces POLITICO's daily
-#'     `kalmanSmooth` trend.}
+#'     deviation of the true support on the share scale, `smoothing = FALSE`
+#'     and `missingSampleSize = "firm"`. With `smoothing = TRUE` every estimate
+#'     takes the later polls into account as well (Rauch-Tung-Striebel
+#'     smoother). The estimates are calculated for the dates with polls only;
+#'     together with `linearInterpolation` the smoothed trend reproduces
+#'     POLITICO's daily `kalmanSmooth` trend. Polls are weighted by their
+#'     sample size; polls without one get the median sample size of their firm
+#'     (or of all polls), or the number given as `missingSampleSize`. POLITICO
+#'     uses 400, so `missingSampleSize = 400` reproduces its trends exactly.}
 #'   \item{`kalmanKFAS`}{Kalman filter based on the \pkg{KFAS} package,
-#'     arguments: `sd = 0.003`, `smoothing = TRUE`.}
+#'     arguments: `sd = 0.003`, `smoothing = TRUE`, `missingSampleSize = "firm"`.}
 #'   \item{`weightedMeanLastDays`}{Linearly weighted rolling mean, arguments:
 #'     `days = 30`, `maxObs = Inf`.}
 #'   \item{`ident`}{Plain mean of all polls published on the same day, no
@@ -535,7 +586,7 @@ print.popPolls = function(x, ...) {
 #' }
 popAddTrend = function(data, name = NULL,
                        type = 'kalman', args = list(),
-                       interpolations = list()) {
+                       interpolations = list(), houseEffects = FALSE) {
     checkPopPolls(data, 'data')
 
     if (is.function(type)) {
@@ -560,6 +611,12 @@ popAddTrend = function(data, name = NULL,
 
     if ((nrow(args$data$polls) + nrow(args$data$elections)) == 0)
         stop('No polls', call. = FALSE)
+
+    if (houseEffects) {
+        sd = if (is.numeric(args$sd)) args$sd else 0.003
+        args$data = adjustPolls(args$data, estimateHouseEffects(args$data, sd = sd))
+        trendName = paste(trendName, 'adjusted', sep = '-')
+    }
 
     trend = checkTrend(do.call(type, args), trendName)
 

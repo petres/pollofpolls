@@ -71,7 +71,8 @@ both[, .(days = uniqueN(date), meanAbsDifference = mean(abs(value.x - value.y)))
 ```
 
 `plot()` draws the polls as points and every trend as a line. Trends with a
-variance, such as the Kalman trends, come with a 95 % uncertainty band.
+variance, such as the Kalman trends, come with a 95 % uncertainty band. Dotted
+lines mark the events POLITICO notes in its charts, such as elections.
 
 ```{r, fig.alt = "Polls and smoothed Kalman trends with uncertainty bands for the Austrian parties since 2024"}
 at$trends$kalmanSmooth = NULL
@@ -101,7 +102,7 @@ popLong(at)
 popLong(at, 'trends')
 ```
 
-## Current standings and seats
+## Current standings, seats and coalitions
 
 `popLatest()` summarises a trend (by default the one added last) at a date: the
 estimated support, its uncertainty, the change over the last 30 days and the
@@ -119,19 +120,88 @@ with the D'Hondt method, which a national projection approximates well:
 popSeats(at, seats = 183, threshold = 0.04, method = 'dhondt')
 ```
 
-## Polling firms
-
-`popFirms()` lists the firms behind the polls, `popHouseEffects()` estimates how
-much each firm deviates from the consensus for each party, i.e. from a smoothed
-Kalman trend through all polls:
+The trend is uncertain, and so are the seats. With `simulations`, the shares
+are drawn from the uncertainty of the trend: `lower` and `upper` give the range
+of seats in 90 % of the simulations, `pSeats` the probability that a party
+passes the threshold.
 
 ```{r}
-popFirms(at)
+set.seed(1)
+popSeats(at, seats = 183, threshold = 0.04, method = 'dhondt', simulations = 2000)
+```
 
-effects = popHouseEffects(at, minPolls = 10)
+`popCoalitions()` adds up the simulated seats of coalitions and gives the
+probability of a majority, either for given coalitions or for every plausible
+combination of up to three parties:
+
+```{r}
+popCoalitions(at, seats = 183, threshold = 0.04,
+              coalitions = list('ÖVP-SPÖ-NEOS' = c('OEVP', 'SPOE', 'NEOS'),
+                                'FPÖ-ÖVP' = c('FPOE', 'OEVP')))
+popCoalitions(at, seats = 183, threshold = 0.04)
+```
+
+## Polling firms
+
+`popFirms()` lists the firms behind the polls. Spellings that only differ in
+case, accents, punctuation or white space are merged when the data is read;
+`spellings` shows under which names a firm is published:
+
+```{r}
+popFirms(at)[, .(firm, polls, last, spellings)]
+```
+
+Anything beyond that needs knowledge about the firms and is left to
+`popRenameFirms()`, e.g. to merge a typo or a firm published with and without
+the first name of its founder:
+
+```{r}
+at = popRenameFirms(at, c('Peter Hajek' = 'Hajek', 'Market-Lazarsfelt' = 'Market-Lazarsfeld'))
+```
+
+`popHouseEffects()` estimates how much each firm deviates from the average firm
+for each party. Trend and effects are estimated together, so a firm that
+publishes many polls cannot pull the trend towards itself. As the effects are
+assumed to be constant, only the polls since the last election are used here:
+
+```{r}
+recent = at
+recent$polls = at$polls[date > as.Date('2024-09-29')]
+effects = popHouseEffects(recent, minPolls = 10)
 # percentage points, one row per firm
 effects[, effect := round(100*effect, 1)]
 dcast(effects, firm ~ party, value.var = 'effect')
+```
+
+With `houseEffects = TRUE`, `popAddTrend()` corrects the polls by these effects
+before calculating the trend:
+
+```{r}
+recent = popAddTrend(recent, name = 'corrected', type = 'kalman',
+                     args = list(smoothing = TRUE),
+                     interpolations = list(linearInterpolation = list()),
+                     houseEffects = TRUE)
+```
+
+```{r, fig.alt = "Smoothed Kalman trend of the polls as published and of the polls corrected by house effects, since the 2024 election"}
+plot(recent, xlim = c('2024-09-29', NA), bands = FALSE)
+```
+
+## Accuracy at past elections
+
+How good are these trends? `popAccuracy()` goes back to every election in the
+data, calculates the trends from the polls published before it and compares
+them with the result. The last poll of every firm is evaluated as well.
+
+```{r}
+accuracy = popAccuracy(at, trends = list(
+    'kalman' = list(type = 'kalman'),
+    'kalman, corrected' = list(type = 'kalman', houseEffects = TRUE),
+    'mean of 30 days' = list(type = 'weightedMeanLastDays')
+))
+# mean absolute error per party, in percentage points
+accuracy[, .(elections = uniqueN(election), mae = round(100*mean(abs(error)), 2)),
+         by = .(kind, source)][order(mae)]
 ```
 
 ## Custom trends

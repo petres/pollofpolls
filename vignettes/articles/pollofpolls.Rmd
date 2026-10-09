@@ -38,39 +38,40 @@ in `$trends`.
 at = popRead('AT-parliament')
 at
 #> Austria — National parliament voting intention 
-#> Retrieved: 2026-10-09 19:44 
+#> Retrieved: 2026-10-09 20:07 
 #> 
 #> Polls:
 #> 
-#>        date   dateFrom              firm     n  SPOE  OEVP  FPOE GRUENE    TS
-#>      <Date>     <Date>            <char> <int> <num> <num> <num>  <num> <num>
-#>  2013-10-03 2013-10-03            Gallup   400  0.28  0.23  0.21   0.13    NA
-#>  2013-10-17 2013-10-17            Gallup   400  0.28  0.23  0.22   0.13    NA
-#>  2013-10-20 2013-10-20            Market   603  0.25  0.23  0.25   0.12    NA
-#>  2013-10-25 2013-10-25            Gallup   400  0.27  0.24  0.22   0.13    NA
-#>  2013-10-26 2013-10-26          Karmasin   500  0.26  0.23  0.23   0.12    NA
-#>         ---        ---               ---   ---   ---   ---   ---    ---   ---
-#>  2026-07-17 2026-07-15              IFDD  1000  0.11  0.15  0.28   0.10    NA
-#>  2026-08-25 2026-08-17 Market Lazarsfeld  2000  0.15  0.22  0.38   0.11    NA
-#>  2026-09-01 2026-08-31 Market Lazarsfeld  2000  0.15  0.21  0.39   0.12    NA
-#>  2026-09-08 2026-09-07 Market Lazarsfeld  2000  0.14  0.21  0.39   0.13    NA
-#>  2026-09-15 2026-09-14 Market Lazarsfeld  2000  0.16  0.22  0.37   0.13    NA
-#>   NEOS Jetzt   HCS   MFG  BIER  KPOE
-#>  <num> <num> <num> <num> <num> <num>
-#>   0.07    NA    NA    NA    NA    NA
-#>   0.08    NA    NA    NA    NA    NA
-#>   0.07    NA    NA    NA    NA    NA
-#>   0.08    NA    NA    NA    NA    NA
-#>   0.08    NA    NA    NA    NA    NA
-#>    ---   ---   ---   ---   ---   ---
-#>   0.05    NA    NA    NA    NA  0.04
-#>   0.07    NA    NA    NA    NA  0.03
-#>   0.07    NA    NA    NA    NA  0.04
-#>   0.07    NA    NA    NA    NA  0.04
-#>   0.06    NA    NA    NA    NA  0.04
+#>        date   dateFrom              firm            firmRaw     n  SPOE  OEVP
+#>      <Date>     <Date>            <char>             <char> <int> <num> <num>
+#>  2013-10-03 2013-10-03            Gallup             Gallup   400  0.28  0.23
+#>  2013-10-17 2013-10-17            Gallup             Gallup   400  0.28  0.23
+#>  2013-10-20 2013-10-20            Market             Market   603  0.25  0.23
+#>  2013-10-25 2013-10-25            Gallup             Gallup   400  0.27  0.24
+#>  2013-10-26 2013-10-26          Karmasin           Karmasin   500  0.26  0.23
+#>         ---        ---               ---                ---   ---   ---   ---
+#>  2026-07-17 2026-07-15              IFDD               IFDD  1000  0.11  0.15
+#>  2026-08-25 2026-08-17 Market/Lazarsfeld  Market Lazarsfeld  2000  0.15  0.22
+#>  2026-09-01 2026-08-31 Market/Lazarsfeld  Market Lazarsfeld  2000  0.15  0.21
+#>  2026-09-08 2026-09-07 Market/Lazarsfeld Market Lazarsfeld   2000  0.14  0.21
+#>  2026-09-15 2026-09-14 Market/Lazarsfeld  Market Lazarsfeld  2000  0.16  0.22
+#>   FPOE GRUENE    TS  NEOS Jetzt   HCS   MFG  BIER  KPOE
+#>  <num>  <num> <num> <num> <num> <num> <num> <num> <num>
+#>   0.21   0.13    NA  0.07    NA    NA    NA    NA    NA
+#>   0.22   0.13    NA  0.08    NA    NA    NA    NA    NA
+#>   0.25   0.12    NA  0.07    NA    NA    NA    NA    NA
+#>   0.22   0.13    NA  0.08    NA    NA    NA    NA    NA
+#>   0.23   0.12    NA  0.08    NA    NA    NA    NA    NA
+#>    ---    ---   ---   ---   ---   ---   ---   ---   ---
+#>   0.28   0.10    NA  0.05    NA    NA    NA    NA  0.04
+#>   0.38   0.11    NA  0.07    NA    NA    NA    NA  0.03
+#>   0.39   0.12    NA  0.07    NA    NA    NA    NA  0.04
+#>   0.39   0.13    NA  0.07    NA    NA    NA    NA  0.04
+#>   0.37   0.13    NA  0.06    NA    NA    NA    NA  0.04
 #> 
 #> Elections: 2013-09-29 2017-10-15 2019-09-29 2024-09-29 
-#> Trends: kalmanSmooth, kalman
+#> Trends: kalmanSmooth, kalman 
+#> Events: 12
 at$parties
 #>       code          name   color
 #>     <char>        <char>  <char>
@@ -120,11 +121,12 @@ both = merge(at$trends$smoothed, at$trends$kalmanSmooth, by = c('date', 'party')
 both[, .(days = uniqueN(date), meanAbsDifference = mean(abs(value.x - value.y)))]
 #>     days meanAbsDifference
 #>    <int>             <num>
-#> 1:  4735      0.0005051443
+#> 1:  4735      0.0005200412
 ```
 
 `plot()` draws the polls as points and every trend as a line. Trends with a
-variance, such as the Kalman trends, come with a 95 % uncertainty band.
+variance, such as the Kalman trends, come with a 95 % uncertainty band. Dotted
+lines mark the events POLITICO notes in its charts, such as elections.
 
 
 ``` r
@@ -180,7 +182,7 @@ popLong(at, 'trends')
 #> 28545: smoothed 2026-09-15   KPOE 0.03992564 1.542379e-05
 ```
 
-## Current standings and seats
+## Current standings, seats and coalitions
 
 `popLatest()` summarises a trend (by default the one added last) at a date: the
 estimated support, its uncertainty, the change over the last 30 days and the
@@ -224,85 +226,196 @@ popSeats(at, seats = 183, threshold = 0.04, method = 'dhondt')
 #> 6:   KPOE    KPÖ 0.03992564     0
 ```
 
-## Polling firms
-
-`popFirms()` lists the firms behind the polls, `popHouseEffects()` estimates how
-much each firm deviates from the consensus for each party, i.e. from a smoothed
-Kalman trend through all polls:
+The trend is uncertain, and so are the seats. With `simulations`, the shares
+are drawn from the uncertainty of the trend: `lower` and `upper` give the range
+of seats in 90 % of the simulations, `pSeats` the probability that a party
+passes the threshold.
 
 
 ``` r
-popFirms(at)
-#>                               firm polls      first       last sampleSize
-#>                             <char> <int>     <Date>     <Date>      <int>
-#>  1:               Research Affairs   162 2016-12-08 2021-09-30        600
-#>  2:                Unique Research   119 2014-06-06 2026-06-18        800
-#>  3:                         Market    97 2013-10-20 2025-07-30        800
-#>  4:                         Gallup    81 2013-10-03 2016-12-10        400
-#>  5:                            OGM    57 2014-04-06 2026-05-20        984
-#>  6:              Market/Lazarsfeld    53 2022-05-19 2024-04-25       1000
-#>  7:              Market Lazarsfeld    45 2024-04-24 2026-09-15       2000
-#>  8:              Market-Lazarsfeld    40 2023-03-29 2026-05-19       2000
-#>  9: Market/Lazarsfeld Gesellschaft    34 2023-05-24 2024-04-29       1000
-#> 10:                           IFDD    32 2021-02-01 2026-07-17       1054
-#> 11:                    Peter Hajek    23 2018-08-29 2024-02-29        800
-#> 12:                           IMAS    20 2014-01-18 2018-05-09       1000
-#> 13:                Unique research    20 2020-01-10 2021-07-08        802
-#> 14:                          Hajek    18 2013-12-12 2018-10-31        700
-#> 15:                        Spectra     9 2017-03-26 2025-02-14       1000
-#> 16:                       Karmasin     8 2013-10-26 2020-01-15       2000
-#> 17:                meinungsraum.at     7 2014-01-15 2017-05-14        800
-#> 18:                       AKonsult     5 2014-09-19 2017-08-04        603
-#> 19:                 Demox Research     5 2019-02-08 2019-09-14       1250
-#> 20:                            GfK     5 2017-04-06 2018-12-09       1500
-#> 21:                           IFES     3 2015-06-23 2017-07-04       1000
-#> 22:                           INSA     3 2025-08-27 2026-07-15       1000
-#> 23:                           SORA     2 2016-08-20 2019-06-10        956
-#> 24:                        cmatzka     2 2017-07-12 2017-09-22        800
-#> 25:                 IFES (for SPÖ)     1 2019-07-10 2019-07-10        936
-#> 26:              Market-Lazarsfelt     1 2024-03-27 2024-03-27       2000
-#> 27:    Unique Research/Peter Hajek     1 2023-06-29 2023-06-29        804
-#> 28:                            ogm     1 2025-04-09 2025-04-09       1042
-#>                               firm polls      first       last sampleSize
-#>                             <char> <int>     <Date>     <Date>      <int>
+set.seed(1)
+popSeats(at, seats = 183, threshold = 0.04, method = 'dhondt', simulations = 2000)
+#>     party   name      share seats lower upper pSeats
+#>    <char> <char>      <num> <int> <int> <int>  <num>
+#> 1:   FPOE    FPÖ 0.37785585    74    69    76  1.000
+#> 2:   OEVP    ÖVP 0.21578371    42    39    44  1.000
+#> 3:   SPOE    SPÖ 0.15342759    30    27    31  1.000
+#> 4: GRUENE  GRÜNE 0.12816831    25    22    26  1.000
+#> 5:   NEOS   NEOS 0.06244160    12    10    13  1.000
+#> 6:   KPOE    KPÖ 0.03992564     0     0     8  0.488
+```
 
-effects = popHouseEffects(at, minPolls = 10)
+`popCoalitions()` adds up the simulated seats of coalitions and gives the
+probability of a majority, either for given coalitions or for every plausible
+combination of up to three parties:
+
+
+``` r
+popCoalitions(at, seats = 183, threshold = 0.04,
+              coalitions = list('ÖVP-SPÖ-NEOS' = c('OEVP', 'SPOE', 'NEOS'),
+                                'FPÖ-ÖVP' = c('FPOE', 'OEVP')))
+#>       coalition        parties seats lower upper pMajority
+#>          <char>         <char> <int> <int> <int>     <num>
+#> 1: ÖVP-SPÖ-NEOS OEVP+SPOE+NEOS    84    79    86         0
+#> 2:      FPÖ-ÖVP      FPOE+OEVP   116   110   118         1
+popCoalitions(at, seats = 183, threshold = 0.04)
+#>           coalition          parties seats lower upper pMajority
+#>              <char>           <char> <int> <int> <int>     <num>
+#> 1:        FPOE+OEVP        FPOE+OEVP   116   110   118    1.0000
+#> 2:        FPOE+SPOE        FPOE+SPOE   104    98   106    1.0000
+#> 3:      FPOE+GRUENE      FPOE+GRUENE    99    93   101    0.9960
+#> 4: OEVP+SPOE+GRUENE OEVP+SPOE+GRUENE    97    91    99    0.9225
+#> 5:   FPOE+NEOS+KPOE   FPOE+NEOS+KPOE    86    84    92    0.0775
+```
+
+## Polling firms
+
+`popFirms()` lists the firms behind the polls. Spellings that only differ in
+case, accents, punctuation or white space are merged when the data is read;
+`spellings` shows under which names a firm is published:
+
+
+``` r
+popFirms(at)[, .(firm, polls, last, spellings)]
+#>                               firm polls       last
+#>                             <char> <int>     <Date>
+#>  1:               Research Affairs   162 2021-09-30
+#>  2:                Unique Research   139 2026-06-18
+#>  3:              Market/Lazarsfeld   138 2026-09-15
+#>  4:                         Market    97 2025-07-30
+#>  5:                         Gallup    81 2016-12-10
+#>  6:                            OGM    58 2026-05-20
+#>  7: Market/Lazarsfeld Gesellschaft    34 2024-04-29
+#>  8:                           IFDD    32 2026-07-17
+#>  9:                    Peter Hajek    23 2024-02-29
+#> 10:                           IMAS    20 2018-05-09
+#> 11:                          Hajek    18 2018-10-31
+#> 12:                        Spectra     9 2025-02-14
+#> 13:                       Karmasin     8 2020-01-15
+#> 14:                meinungsraum.at     7 2017-05-14
+#> 15:                       AKonsult     5 2017-08-04
+#> 16:                 Demox Research     5 2019-09-14
+#> 17:                            GfK     5 2018-12-09
+#> 18:                           IFES     3 2017-07-04
+#> 19:                           INSA     3 2026-07-15
+#> 20:                           SORA     2 2019-06-10
+#> 21:                        cmatzka     2 2017-09-22
+#> 22:                 IFES (for SPÖ)     1 2019-07-10
+#> 23:              Market-Lazarsfelt     1 2024-03-27
+#> 24:    Unique Research/Peter Hajek     1 2023-06-29
+#>                               firm polls       last
+#>                             <char> <int>     <Date>
+#>                                                     spellings
+#>                                                        <char>
+#>  1:                                          Research Affairs
+#>  2:                         Unique Research | Unique research
+#>  3: Market/Lazarsfeld | Market Lazarsfeld | Market-Lazarsfeld
+#>  4:                                                    Market
+#>  5:                                                    Gallup
+#>  6:                                                 OGM | ogm
+#>  7:                            Market/Lazarsfeld Gesellschaft
+#>  8:                                                      IFDD
+#>  9:                                               Peter Hajek
+#> 10:                                                      IMAS
+#> 11:                                                     Hajek
+#> 12:                                                   Spectra
+#> 13:                                                  Karmasin
+#> 14:                                           meinungsraum.at
+#> 15:                                                  AKonsult
+#> 16:                                            Demox Research
+#> 17:                                                       GfK
+#> 18:                                                      IFES
+#> 19:                                                      INSA
+#> 20:                                                      SORA
+#> 21:                                                   cmatzka
+#> 22:                                            IFES (for SPÖ)
+#> 23:                                         Market-Lazarsfelt
+#> 24:                               Unique Research/Peter Hajek
+#>                                                     spellings
+#>                                                        <char>
+```
+
+Anything beyond that needs knowledge about the firms and is left to
+`popRenameFirms()`, e.g. to merge a typo or a firm published with and without
+the first name of its founder:
+
+
+``` r
+at = popRenameFirms(at, c('Peter Hajek' = 'Hajek', 'Market-Lazarsfelt' = 'Market-Lazarsfeld'))
+```
+
+`popHouseEffects()` estimates how much each firm deviates from the average firm
+for each party. Trend and effects are estimated together, so a firm that
+publishes many polls cannot pull the trend towards itself. As the effects are
+assumed to be constant, only the polls since the last election are used here:
+
+
+``` r
+recent = at
+recent$polls = at$polls[date > as.Date('2024-09-29')]
+effects = popHouseEffects(recent, minPolls = 10)
 # percentage points, one row per firm
 effects[, effect := round(100*effect, 1)]
 dcast(effects, firm ~ party, value.var = 'effect')
 #> Key: <firm>
-#>                               firm  BIER  FPOE GRUENE   HCS Jetzt  KPOE   MFG
-#>                             <char> <num> <num>  <num> <num> <num> <num> <num>
-#>  1:                         Gallup    NA   0.2    0.2    NA    NA    NA    NA
-#>  2:                          Hajek    NA   0.4    0.0    NA    NA    NA    NA
-#>  3:                           IFDD    NA  -0.2   -0.2    NA    NA   0.2    NA
-#>  4:                           IMAS    NA  -1.0    0.4    NA    NA    NA    NA
-#>  5:                         Market  -0.2   0.2    0.3    NA   0.1  -0.3    NA
-#>  6:              Market Lazarsfeld    NA   0.2    0.0    NA    NA   0.1    NA
-#>  7:              Market-Lazarsfeld   0.0   0.0    0.0    NA    NA   0.0    NA
-#>  8:              Market/Lazarsfeld   0.0   0.1    0.0    NA    NA    NA  -0.1
-#>  9: Market/Lazarsfeld Gesellschaft    NA  -0.1    0.1    NA    NA   0.1    NA
-#> 10:                            OGM    NA  -0.1    0.1    NA  -0.1   0.1    NA
-#> 11:                    Peter Hajek    NA   0.4    0.2    NA    NA    NA    NA
-#> 12:               Research Affairs    NA  -0.2   -0.2   0.1   0.1    NA    NA
-#> 13:                Unique Research    NA   0.1    0.1    NA   0.0   0.0   0.6
-#> 14:                Unique research    NA   1.5    0.5    NA    NA    NA    NA
-#>      NEOS  OEVP  SPOE    TS
-#>     <num> <num> <num> <num>
-#>  1:   0.3  -0.3   0.0    NA
-#>  2:   0.5   0.1  -0.1    NA
-#>  3:  -0.3   0.2   0.3    NA
-#>  4:  -1.0   1.5   0.7   0.2
-#>  5:   0.3  -0.4   0.1   0.0
-#>  6:   0.0  -0.2   0.0    NA
-#>  7:   0.2   0.0   0.0    NA
-#>  8:   0.4  -0.3   0.3    NA
-#>  9:   0.5  -0.3   0.2    NA
-#> 10:  -0.2   0.4   0.2    NA
-#> 11:  -0.3   0.4  -0.4    NA
-#> 12:   0.1   0.2  -0.5    NA
-#> 13:   0.2   0.3   0.0   0.1
-#> 14:   0.2  -0.1  -0.7    NA
+#>                 firm  FPOE GRUENE  KPOE  NEOS  OEVP  SPOE
+#>               <char> <num>  <num> <num> <num> <num> <num>
+#> 1: Market-Lazarsfeld     0      0     0     0     0     0
+```
+
+With `houseEffects = TRUE`, `popAddTrend()` corrects the polls by these effects
+before calculating the trend:
+
+
+``` r
+recent = popAddTrend(recent, name = 'corrected', type = 'kalman',
+                     args = list(smoothing = TRUE),
+                     interpolations = list(linearInterpolation = list()),
+                     houseEffects = TRUE)
+```
+
+
+``` r
+plot(recent, xlim = c('2024-09-29', NA), bands = FALSE)
+```
+
+<div class="figure">
+<img src="figures/pollofpolls-unnamed-chunk-18-1.png" alt="Smoothed Kalman trend of the polls as published and of the polls corrected by house effects, since the 2024 election"  />
+<p class="caption">plot of chunk unnamed-chunk-18</p>
+</div>
+
+## Accuracy at past elections
+
+How good are these trends? `popAccuracy()` goes back to every election in the
+data, calculates the trends from the polls published before it and compares
+them with the result. The last poll of every firm is evaluated as well.
+
+
+``` r
+accuracy = popAccuracy(at, trends = list(
+    'kalman' = list(type = 'kalman'),
+    'kalman, corrected' = list(type = 'kalman', houseEffects = TRUE),
+    'mean of 30 days' = list(type = 'weightedMeanLastDays')
+))
+# mean absolute error per party, in percentage points
+accuracy[, .(elections = uniqueN(election), mae = round(100*mean(abs(error)), 2)),
+         by = .(kind, source)][order(mae)]
+#>       kind            source elections   mae
+#>     <char>            <char>     <int> <num>
+#>  1:   firm           cmatzka         1  0.58
+#>  2:   firm              IFDD         1  0.83
+#>  3:   firm               OGM         3  1.13
+#>  4:   firm   Unique Research         3  1.20
+#>  5:  trend            kalman         3  1.21
+#>  6:  trend kalman, corrected         3  1.23
+#>  7:  trend   mean of 30 days         3  1.26
+#>  8:   firm Market-Lazarsfeld         1  1.29
+#>  9:   firm             Hajek         1  1.52
+#> 10:   firm            Market         3  1.53
+#> 11:   firm           Spectra         2  1.58
+#> 12:   firm          Karmasin         1  1.78
+#> 13:   firm  Research Affairs         2  1.83
+#> 14:   firm    Demox Research         1  2.50
 ```
 
 ## Custom trends
@@ -332,8 +445,8 @@ plot(at, xlim = c('2024-01-01', NA))
 ```
 
 <div class="figure">
-<img src="figures/pollofpolls-unnamed-chunk-14-1.png" alt="Polls with the smoothed Kalman trend and a weekly rolling median as second line type"  />
-<p class="caption">plot of chunk unnamed-chunk-14</p>
+<img src="figures/pollofpolls-unnamed-chunk-21-1.png" alt="Polls with the smoothed Kalman trend and a weekly rolling median as second line type"  />
+<p class="caption">plot of chunk unnamed-chunk-21</p>
 </div>
 
 ## Working offline

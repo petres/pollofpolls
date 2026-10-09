@@ -11,6 +11,7 @@ popCreate(
   trends = list(),
   name = NULL,
   elections = data.table(),
+  events = emptyEvents(),
   code = NULL,
   retrieved = NULL
 )
@@ -29,6 +30,8 @@ columns \code{date}, \code{party}, \code{value} and optionally \code{variance}.}
 \item{name}{Name of the poll, used as plot title.}
 
 \item{elections}{\code{data.table} of election results in the same shape as \code{polls}.}
+
+\item{events}{\code{data.table} of events with the columns \code{date} and \code{name}.}
 
 \item{code}{Poll code the data was read for.}
 

@@ -47,10 +47,11 @@ plot(de)
 
 | Element      | Content                                                                        |
 | ------------ | ------------------------------------------------------------------------------ |
-| `$polls`     | one row per poll: `date`, `dateFrom`, `firm`, `n` and one column per party      |
+| `$polls`     | one row per poll: `date`, `dateFrom`, `firm`, `firmRaw`, `n` and one column per party |
 | `$elections` | election results in the same shape                                              |
 | `$parties`   | party `code`, `name` and `color`                                                |
 | `$trends`    | named list of trends in long format (`date`, `party`, `value`, `variance`)      |
+| `$events`    | events POLITICO marks in its charts (`date`, `name`), shown by the plots        |
 | `$options`   | options as published by the endpoint, notably `measure` (`"p"` or `"s"`)        |
 
 Shares are stored as fractions (`0.27` = 27 %); seat projections such as
@@ -61,8 +62,8 @@ elections or trends in long format.
 
 | Trend                  | Arguments                                                   |
 | ---------------------- | ----------------------------------------------------------- |
-| `kalman`               | `sd = 0.003`, `smoothing = FALSE`                           |
-| `kalmanKFAS`           | `sd = 0.003`, `smoothing = TRUE` (needs the `KFAS` package) |
+| `kalman`               | `sd = 0.003`, `smoothing = FALSE`, `missingSampleSize = "firm"` |
+| `kalmanKFAS`           | `sd = 0.003`, `smoothing = TRUE`, `missingSampleSize = "firm"` (needs the `KFAS` package) |
 | `weightedMeanLastDays` | `days = 30`, `maxObs = Inf`                                 |
 | `ident`                | –                                                           |
 
@@ -80,6 +81,15 @@ de = popAddTrend(de, name = 'Kalman smoothed', type = 'kalman',
                  interpolations = list(linearInterpolation = list()))
 ```
 
+Polls without a sample size are given the median sample size of their firm.
+POLITICO counts them as 400 respondents instead; `missingSampleSize = 400`
+reproduces its trends exactly.
+
+`popAddTrend(..., houseEffects = TRUE)` corrects every poll by the house effect
+of its firm (see below) before the trend is calculated. This removes the
+differences between firms, not the errors they share, so at past elections the
+corrected trends were not more accurate (see `popAccuracy()`).
+
 `type` also takes a function, which gets the `popPolls` object as `data` and
 returns a `data.frame` with the columns `date`, `party` and `value` (optionally
 `variance`):
@@ -89,18 +99,52 @@ lastPoll = function(data) popLong(data)[, .(value = data.table::last(value)), by
 de = popAddTrend(de, type = lastPoll)
 ```
 
-## Standings, seats and pollsters
+## Standings, seats and coalitions
 
 ```r
 # Support, uncertainty and change over the last 30 days according to the trend added last
 popLatest(de)
 
-# Seat projection (national level only, no direct mandates or overhang seats)
-popSeats(de, seats = 630, threshold = 0.05, method = 'sainte-lague')
+# Seat projection (national level only, no direct mandates or overhang seats),
+# with seat ranges simulated from the uncertainty of the trend
+popSeats(de, seats = 630, threshold = 0.05, method = 'sainte-lague', simulations = 2000)
 
-# Polling firms and their deviation from the consensus, by party
+# Probability of a majority, for given coalitions or all plausible ones
+popCoalitions(de, seats = 630, threshold = 0.05, method = 'sainte-lague',
+              coalitions = list(c('Union', 'SPD'), c('Union', 'GRUENE')))
+popCoalitions(de, seats = 630, threshold = 0.05, method = 'sainte-lague')
+```
+
+## Polling firms
+
+Firm names that only differ in case, accents, punctuation or white space
+(`INSA/YouGov` and `INSA YouGov`) are merged when the data is read; the name as
+published is kept in `firmRaw`. Everything else, such as a renamed firm, can be
+merged with `popRenameFirms()` or, for every `popRead()`, with
+`options(pollofpolls.firms = c('Peter Hajek' = 'Hajek'))`.
+
+```r
+# Firms, number of polls and the spellings they are published under
 popFirms(de)
+
+# Deviation of every firm from the average firm, by party
 popHouseEffects(de)
+```
+
+## Accuracy at past elections
+
+`popAccuracy()` evaluates trends and firms against the election results in the
+data. For every election, the trends are calculated only from the polls
+published before it, so the comparison is out of sample:
+
+```r
+accuracy = popAccuracy(de, trends = list(
+    kalman = list(type = 'kalman'),
+    adjusted = list(type = 'kalman', houseEffects = TRUE),
+    'mean 30d' = list(type = 'weightedMeanLastDays')
+))
+# mean absolute error per party, in percentage points
+accuracy[, .(mae = 100*mean(abs(error))), by = .(kind, source)][order(mae)]
 ```
 
 ## Plotting with ggplot2
@@ -137,6 +181,7 @@ rate limited ones as long as the server asks it to (`Retry-After`). Options:
 | `pollofpolls.attempts`        | `3`     | attempts per request                                 |
 | `pollofpolls.maxRetryDelay`   | `60`    | longest wait before a retry, seconds                 |
 | `pollofpolls.timeout`         | `60`    | request timeout, seconds                             |
+| `pollofpolls.firms`           | `NULL`  | firms to rename in every `popRead()`, see `popRenameFirms()` |
 
 `popCacheClear()` drops the cache, `popRead(code, metadata = FALSE)` skips the
 website lookup completely.
@@ -149,6 +194,10 @@ without sending a request:
 popDownload('polls', codes = c('AT-parliament', 'DE-parliament'))
 at = popRead('AT-parliament', dir = 'polls')
 ```
+
+POLITICO's CDN refuses requests from many cloud servers (HTTP 403), e.g. CI
+runners. Download the data on a local machine with `popDownload()`, copy the
+files to the server and read them there with `popRead(dir = ...)`.
 
 ## Data source
 

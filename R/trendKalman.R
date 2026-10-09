@@ -1,16 +1,22 @@
 #' @import data.table
 
-# Sample size assumed for polls that do not report one.
-.defaultSampleSize <- 400
+# Polls in long format with a sample size for every poll, see fillSampleSizes().
+pollObservations = function(data, missingSampleSize = 'firm') {
+    polls = copy(data$polls)
+    if (nrow(polls) > 0)
+        polls[, n := fillSampleSizes(polls, missingSampleSize)]
 
-# Prepares polls and election results for the Kalman filters: one row per date,
-# party and observation, with the sampling variance attached.
-observations = function(data) {
-    pollData = toLong(data)
+    pollData = toLong(list(polls = polls, parties = data$parties))
     if (!'n' %in% names(pollData))
         pollData[, n := NA_real_]
-    pollData = pollData[, .(date, party, value, n = as.numeric(n))]
-    pollData[is.na(n), n := .defaultSampleSize]
+    pollData[, .(date, party, value, n = as.numeric(n))]
+}
+
+# Prepares polls and election results for the Kalman filters: one row per date,
+# party and observation, with the sample size attached. Elections are treated as
+# exact.
+observations = function(data, missingSampleSize = 'firm') {
+    pollData = pollObservations(data, missingSampleSize)
 
     electionData = toLong(data, 'elections')
     electionData[, n := Inf]
@@ -61,8 +67,8 @@ kalmanSmooth = function(filtered, sd) {
 }
 
 #' @import data.table
-kalman = function(data, sd = 0.003, smoothing = FALSE) {
-    pollData = observations(data)
+kalman = function(data, sd = 0.003, smoothing = FALSE, missingSampleSize = 'firm') {
+    pollData = observations(data, missingSampleSize)
     if (nrow(pollData) == 0)
         return(emptyLong())
 

@@ -1,22 +1,12 @@
 #' @import data.table
 
-kalmanKFAS = function(data, sd = 0.003, smoothing = TRUE) {
+kalmanKFAS = function(data, sd = 0.003, smoothing = TRUE, missingSampleSize = 'firm') {
     if (!requireNamespace("KFAS", quietly = TRUE))
         stop("Package \"KFAS\" is needed. Please install it.", call. = FALSE)
 
-    pollData = toLong(data)
+    pollData = pollObservations(data, missingSampleSize)
     if (nrow(pollData) == 0)
         return(emptyLong())
-
-    if (!'n' %in% names(pollData))
-        pollData[, n := NA_real_]
-    pollData = pollData[, .(date, party, value, n = as.numeric(n))]
-
-    # polls without a sample size are treated as the least informative ones
-    smallest = suppressWarnings(min(pollData$n, na.rm = TRUE))
-    if (!is.finite(smallest))
-        smallest = .defaultSampleSize
-    pollData[is.na(n), n := smallest]
 
     # combine polls published on the same day
     pollData = pollData[, .(n = sum(n), value = sum(n*value)/sum(n)), by=.(date, party)]

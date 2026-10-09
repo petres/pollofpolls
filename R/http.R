@@ -91,7 +91,13 @@ fetchUrl = function(url, attempts = getOption('pollofpolls.attempts', 3L)) {
         wait(if (is.null(requested)) min(maxDelay, delay * 2^(i - 1)) else requested)
     }
 
-    stop(errorCondition(sprintf("Failed to fetch '%s': %s", url, result$reason),
+    # POLITICO's CDN rejects the address ranges of many hosting providers
+    hint = if (identical(result$status, 403L))
+        paste0('. POLITICO refuses requests from many cloud servers (such as CI runners): run ',
+               'the code on a local machine, or download the data there with popDownload() ',
+               'and read it with popRead(dir = ...)') else ''
+
+    stop(errorCondition(sprintf("Failed to fetch '%s': %s%s", url, result$reason, hint),
                         class = 'pollofpolls_http_error', status = result$status, call = NULL))
 }
 

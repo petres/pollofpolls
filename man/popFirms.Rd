@@ -12,8 +12,9 @@ popFirms(x)
 \value{
 A \code{data.table} with one row per firm and the columns \code{firm},
 \code{polls} (number of polls), \code{first} and \code{last} (date of the first and the
-last poll) and \code{sampleSize} (median sample size), sorted by the number of
-polls.
+last poll), \code{sampleSize} (median sample size) and \code{spellings} (the names
+the firm is published under, see \code{\link[=popRenameFirms]{popRenameFirms()}}), sorted by the number
+of polls.
 }
 \description{
 Lists the polling firms of a \code{popPolls} object.

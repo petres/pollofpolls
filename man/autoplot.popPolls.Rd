@@ -4,7 +4,7 @@
 \alias{autoplot.popPolls}
 \title{Plot polls with ggplot2}
 \usage{
-\method{autoplot}{popPolls}(object, ..., bands = TRUE, level = 0.95, xlim = NULL)
+\method{autoplot}{popPolls}(object, ..., bands = TRUE, level = 0.95, xlim = NULL, events = TRUE)
 }
 \arguments{
 \item{object}{A \code{popPolls} object.}
@@ -17,13 +17,16 @@
 
 \item{xlim}{Date range to show, dates or ISO date strings; \code{NA} keeps the
 respective end of the data range.}
+
+\item{events}{Whether events should be marked.}
 }
 \value{
 A \code{ggplot} object.
 }
 \description{
 The \pkg{ggplot2} counterpart of \code{\link[=plot.popPolls]{plot.popPolls()}}: polls as points, trends
-as lines and, for trends with a variance, uncertainty bands. The result is
+as lines, for trends with a variance, uncertainty bands and the events in
+\code{object$events} as vertical lines. The result is
 an ordinary ggplot object that can be extended with further layers, scales
 and themes.
 }

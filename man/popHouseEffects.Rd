@@ -4,15 +4,19 @@
 \alias{popHouseEffects}
 \title{House Effects}
 \usage{
-popHouseEffects(x, trend = NULL, minPolls = 5)
+popHouseEffects(x, trend = NULL, minPolls = 5, sd = 0.003, iterations = 20)
 }
 \arguments{
 \item{x}{A \code{popPolls} object.}
 
-\item{trend}{Name of the trend in \code{x$trends} the polls are compared to. By
-default a smoothed Kalman trend is calculated.}
+\item{trend}{Name of a trend in \code{x$trends} the polls are compared to as they
+are, instead of estimating trend and effects together.}
 
 \item{minPolls}{Firms with fewer polls of a party are left out.}
+
+\item{sd}{Daily standard deviation of the Kalman trend, see \code{\link[=popAddTrend]{popAddTrend()}}.}
+
+\item{iterations}{Maximum number of iterations.}
 }
 \value{
 A \code{data.table} with the columns \code{firm}, \code{party}, \code{polls} (number of
@@ -25,15 +29,28 @@ difference between its polls and a trend, by party. A positive \code{effect}
 means that the firm sees the party stronger than the other firms.
 }
 \details{
-The trend is calculated from the polls of all firms, including the one
-evaluated, so the effects of firms that publish a large share of the polls
-are underestimated.
+By default the effects are estimated together with the trend they are
+measured against: a smoothed Kalman trend is calculated from the polls
+corrected by the current effects, the effects are updated with the remaining
+deviations, and so on until they no longer change. Otherwise a firm that
+publishes a large share of the polls would pull the trend towards itself and
+its effect would be underestimated. The effects are measured relative to the
+average of the firms, each counting once however many polls it publishes:
+an error all firms share, as seen at some elections, cannot be told apart
+from the trend.
+
+The effects are assumed to be constant over time, so for long series it can
+be worth restricting the polls to the last years first.
 }
 \examples{
 \dontrun{
 de = popRead('DE-parliament')
+de$polls = de$polls[date >= as.Date('2022-01-01')]
 effects = popHouseEffects(de)
 # one row per firm, one column per party
 data.table::dcast(effects, firm ~ party, value.var = 'effect')
+
+# a trend of polls corrected by the house effects
+de = popAddTrend(de, type = 'kalman', houseEffects = TRUE)
 }
 }

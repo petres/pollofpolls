@@ -9,7 +9,8 @@ popAddTrend(
   name = NULL,
   type = "kalman",
   args = list(),
-  interpolations = list()
+  interpolations = list(),
+  houseEffects = FALSE
 )
 }
 \arguments{
@@ -24,6 +25,12 @@ applied interpolations.}
 
 \item{interpolations}{Named list of interpolations that should be applied to
 the trend, see details.}
+
+\item{houseEffects}{Whether the polls should be corrected by the house
+effects of their firms (see \code{\link[=popHouseEffects]{popHouseEffects()}}) before the trend is
+calculated. The correction removes the differences between the firms, not
+the errors they share, so it does not necessarily bring the trend closer
+to election results; see \code{\link[=popAccuracy]{popAccuracy()}}.}
 }
 \value{
 The \code{popPolls} object with the trend added to \verb{$trends}.
@@ -37,14 +44,17 @@ Available trend functions are:
 
 \describe{
 \item{\code{kalman}}{Kalman filter, arguments: \code{sd = 0.003}, the daily standard
-deviation of the true support on the share scale, and
-\code{smoothing = FALSE}. With \code{smoothing = TRUE} every estimate takes the
-later polls into account as well (Rauch-Tung-Striebel smoother). The
-estimates are calculated for the dates with polls only; together with
-\code{linearInterpolation} the smoothed trend reproduces POLITICO's daily
-\code{kalmanSmooth} trend.}
+deviation of the true support on the share scale, \code{smoothing = FALSE}
+and \code{missingSampleSize = "firm"}. With \code{smoothing = TRUE} every estimate
+takes the later polls into account as well (Rauch-Tung-Striebel
+smoother). The estimates are calculated for the dates with polls only;
+together with \code{linearInterpolation} the smoothed trend reproduces
+POLITICO's daily \code{kalmanSmooth} trend. Polls are weighted by their
+sample size; polls without one get the median sample size of their firm
+(or of all polls), or the number given as \code{missingSampleSize}. POLITICO
+uses 400, so \code{missingSampleSize = 400} reproduces its trends exactly.}
 \item{\code{kalmanKFAS}}{Kalman filter based on the \pkg{KFAS} package,
-arguments: \code{sd = 0.003}, \code{smoothing = TRUE}.}
+arguments: \code{sd = 0.003}, \code{smoothing = TRUE}, \code{missingSampleSize = "firm"}.}
 \item{\code{weightedMeanLastDays}}{Linearly weighted rolling mean, arguments:
 \code{days = 30}, \code{maxObs = Inf}.}
 \item{\code{ident}}{Plain mean of all polls published on the same day, no
