@@ -9,9 +9,10 @@ saved by
 ``` r
 popRead(
   code,
-  load = c("polls", "elections", "trends"),
+  load = c("polls", "elections", "trends", "events"),
   metadata = TRUE,
-  dir = NULL
+  dir = NULL,
+  firms = getOption("pollofpolls.firms")
 )
 ```
 
@@ -25,8 +26,8 @@ popRead(
 
 - load:
 
-  Which parts to load: any of `"polls"`, `"elections"` and `"trends"`
-  (the trends already published by POLITICO).
+  Which parts to load: any of `"polls"`, `"elections"`, `"trends"` (the
+  trends already published by POLITICO) and `"events"`.
 
 - metadata:
 
@@ -40,12 +41,22 @@ popRead(
   If given, the data is read from `<dir>/<code>.json` instead of being
   downloaded.
 
+- firms:
+
+  Named character vector of firms to rename, see
+  [`popRenameFirms()`](https://petres.github.io/pollofpolls/reference/popRenameFirms.md).
+
+  Firm names that only differ in case, accents, punctuation and white
+  space are merged under their most frequent spelling.
+
 ## Value
 
 A `popPolls` object. `$polls` holds one row per poll with the columns
-`date`, `dateFrom`, `firm`, `n` (sample size) and one column per party,
-`$elections` the same for election results, `$parties` the party codes,
-names and colours and `$trends` the published trends in long format.
+`date`, `dateFrom`, `firm`, `firmRaw` (the firm as published), `n`
+(sample size) and one column per party, `$elections` the same for
+election results, `$parties` the party codes, names and colours,
+`$trends` the published trends in long format and `$events` the events
+POLITICO marks in its charts.
 
 ## Details
 

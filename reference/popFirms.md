@@ -18,8 +18,10 @@ popFirms(x)
 
 A `data.table` with one row per firm and the columns `firm`, `polls`
 (number of polls), `first` and `last` (date of the first and the last
-poll) and `sampleSize` (median sample size), sorted by the number of
-polls.
+poll), `sampleSize` (median sample size) and `spellings` (the names the
+firm is published under, see
+[`popRenameFirms()`](https://petres.github.io/pollofpolls/reference/popRenameFirms.md)),
+sorted by the number of polls.
 
 ## Examples
 

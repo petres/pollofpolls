@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">pollofpolls</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,39 +93,40 @@ row per poll in <code>$polls</code>, election results in
 <code class="sourceCode R"><span><span class="va">at</span> <span class="op">=</span> <span class="fu"><a href="../reference/popRead.html">popRead</a></span><span class="op">(</span><span class="st">'AT-parliament'</span><span class="op">)</span></span>
 <span><span class="va">at</span></span>
 <span><span class="co">#&gt; Austria — National parliament voting intention </span></span>
-<span><span class="co">#&gt; Retrieved: 2026-10-09 19:44 </span></span>
+<span><span class="co">#&gt; Retrieved: 2026-10-09 20:07 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Polls:</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;        date   dateFrom              firm     n  SPOE  OEVP  FPOE GRUENE    TS</span></span>
-<span><span class="co">#&gt;      &lt;Date&gt;     &lt;Date&gt;            &lt;char&gt; &lt;int&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;  &lt;num&gt; &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  2013-10-03 2013-10-03            Gallup   400  0.28  0.23  0.21   0.13    NA</span></span>
-<span><span class="co">#&gt;  2013-10-17 2013-10-17            Gallup   400  0.28  0.23  0.22   0.13    NA</span></span>
-<span><span class="co">#&gt;  2013-10-20 2013-10-20            Market   603  0.25  0.23  0.25   0.12    NA</span></span>
-<span><span class="co">#&gt;  2013-10-25 2013-10-25            Gallup   400  0.27  0.24  0.22   0.13    NA</span></span>
-<span><span class="co">#&gt;  2013-10-26 2013-10-26          Karmasin   500  0.26  0.23  0.23   0.12    NA</span></span>
-<span><span class="co">#&gt;         ---        ---               ---   ---   ---   ---   ---    ---   ---</span></span>
-<span><span class="co">#&gt;  2026-07-17 2026-07-15              IFDD  1000  0.11  0.15  0.28   0.10    NA</span></span>
-<span><span class="co">#&gt;  2026-08-25 2026-08-17 Market Lazarsfeld  2000  0.15  0.22  0.38   0.11    NA</span></span>
-<span><span class="co">#&gt;  2026-09-01 2026-08-31 Market Lazarsfeld  2000  0.15  0.21  0.39   0.12    NA</span></span>
-<span><span class="co">#&gt;  2026-09-08 2026-09-07 Market Lazarsfeld  2000  0.14  0.21  0.39   0.13    NA</span></span>
-<span><span class="co">#&gt;  2026-09-15 2026-09-14 Market Lazarsfeld  2000  0.16  0.22  0.37   0.13    NA</span></span>
-<span><span class="co">#&gt;   NEOS Jetzt   HCS   MFG  BIER  KPOE</span></span>
-<span><span class="co">#&gt;  &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span></span>
-<span><span class="co">#&gt;   0.07    NA    NA    NA    NA    NA</span></span>
-<span><span class="co">#&gt;   0.08    NA    NA    NA    NA    NA</span></span>
-<span><span class="co">#&gt;   0.07    NA    NA    NA    NA    NA</span></span>
-<span><span class="co">#&gt;   0.08    NA    NA    NA    NA    NA</span></span>
-<span><span class="co">#&gt;   0.08    NA    NA    NA    NA    NA</span></span>
-<span><span class="co">#&gt;    ---   ---   ---   ---   ---   ---</span></span>
-<span><span class="co">#&gt;   0.05    NA    NA    NA    NA  0.04</span></span>
-<span><span class="co">#&gt;   0.07    NA    NA    NA    NA  0.03</span></span>
-<span><span class="co">#&gt;   0.07    NA    NA    NA    NA  0.04</span></span>
-<span><span class="co">#&gt;   0.07    NA    NA    NA    NA  0.04</span></span>
-<span><span class="co">#&gt;   0.06    NA    NA    NA    NA  0.04</span></span>
+<span><span class="co">#&gt;        date   dateFrom              firm            firmRaw     n  SPOE  OEVP</span></span>
+<span><span class="co">#&gt;      &lt;Date&gt;     &lt;Date&gt;            &lt;char&gt;             &lt;char&gt; &lt;int&gt; &lt;num&gt; &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  2013-10-03 2013-10-03            Gallup             Gallup   400  0.28  0.23</span></span>
+<span><span class="co">#&gt;  2013-10-17 2013-10-17            Gallup             Gallup   400  0.28  0.23</span></span>
+<span><span class="co">#&gt;  2013-10-20 2013-10-20            Market             Market   603  0.25  0.23</span></span>
+<span><span class="co">#&gt;  2013-10-25 2013-10-25            Gallup             Gallup   400  0.27  0.24</span></span>
+<span><span class="co">#&gt;  2013-10-26 2013-10-26          Karmasin           Karmasin   500  0.26  0.23</span></span>
+<span><span class="co">#&gt;         ---        ---               ---                ---   ---   ---   ---</span></span>
+<span><span class="co">#&gt;  2026-07-17 2026-07-15              IFDD               IFDD  1000  0.11  0.15</span></span>
+<span><span class="co">#&gt;  2026-08-25 2026-08-17 Market/Lazarsfeld  Market Lazarsfeld  2000  0.15  0.22</span></span>
+<span><span class="co">#&gt;  2026-09-01 2026-08-31 Market/Lazarsfeld  Market Lazarsfeld  2000  0.15  0.21</span></span>
+<span><span class="co">#&gt;  2026-09-08 2026-09-07 Market/Lazarsfeld Market Lazarsfeld   2000  0.14  0.21</span></span>
+<span><span class="co">#&gt;  2026-09-15 2026-09-14 Market/Lazarsfeld  Market Lazarsfeld  2000  0.16  0.22</span></span>
+<span><span class="co">#&gt;   FPOE GRUENE    TS  NEOS Jetzt   HCS   MFG  BIER  KPOE</span></span>
+<span><span class="co">#&gt;  &lt;num&gt;  &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span></span>
+<span><span class="co">#&gt;   0.21   0.13    NA  0.07    NA    NA    NA    NA    NA</span></span>
+<span><span class="co">#&gt;   0.22   0.13    NA  0.08    NA    NA    NA    NA    NA</span></span>
+<span><span class="co">#&gt;   0.25   0.12    NA  0.07    NA    NA    NA    NA    NA</span></span>
+<span><span class="co">#&gt;   0.22   0.13    NA  0.08    NA    NA    NA    NA    NA</span></span>
+<span><span class="co">#&gt;   0.23   0.12    NA  0.08    NA    NA    NA    NA    NA</span></span>
+<span><span class="co">#&gt;    ---    ---   ---   ---   ---   ---   ---   ---   ---</span></span>
+<span><span class="co">#&gt;   0.28   0.10    NA  0.05    NA    NA    NA    NA  0.04</span></span>
+<span><span class="co">#&gt;   0.38   0.11    NA  0.07    NA    NA    NA    NA  0.03</span></span>
+<span><span class="co">#&gt;   0.39   0.12    NA  0.07    NA    NA    NA    NA  0.04</span></span>
+<span><span class="co">#&gt;   0.39   0.13    NA  0.07    NA    NA    NA    NA  0.04</span></span>
+<span><span class="co">#&gt;   0.37   0.13    NA  0.06    NA    NA    NA    NA  0.04</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Elections: 2013-09-29 2017-10-15 2019-09-29 2024-09-29 </span></span>
-<span><span class="co">#&gt; Trends: kalmanSmooth, kalman</span></span>
+<span><span class="co">#&gt; Trends: kalmanSmooth, kalman </span></span>
+<span><span class="co">#&gt; Events: 12</span></span>
 <span><span class="va">at</span><span class="op">$</span><span class="va">parties</span></span>
 <span><span class="co">#&gt;       code          name   color</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;        &lt;char&gt;  &lt;char&gt;</span></span>
@@ -170,10 +171,11 @@ are calculated for the dates with polls;
 <span><span class="va">both</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span>days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">date</span><span class="op">)</span>, meanAbsDifference <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">value.x</span> <span class="op">-</span> <span class="va">value.y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;     days meanAbsDifference</span></span>
 <span><span class="co">#&gt;    &lt;int&gt;             &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:  4735      0.0005051443</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:  4735      0.0005200412</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws the polls as points and every trend as a
 line. Trends with a variance, such as the Kalman trends, come with a 95
-% uncertainty band.</p>
+% uncertainty band. Dotted lines mark the events POLITICO notes in its
+charts, such as elections.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">at</span><span class="op">$</span><span class="va">trends</span><span class="op">$</span><span class="va">kalmanSmooth</span> <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="va">at</span><span class="op">$</span><span class="va">trends</span><span class="op">$</span><span class="va">kalman</span> <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -222,7 +224,7 @@ results and trends in long format:</p>
 <span><span class="co">#&gt; 28545: smoothed 2026-09-15   KPOE 0.03992564 1.542379e-05</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="current-standings-and-seats">Current standings and seats<a class="anchor" aria-label="anchor" href="#current-standings-and-seats"></a>
+<h2 id="current-standings-seats-and-coalitions">Current standings, seats and coalitions<a class="anchor" aria-label="anchor" href="#current-standings-seats-and-coalitions"></a>
 </h2>
 <p><code><a href="../reference/popLatest.html">popLatest()</a></code> summarises a trend (by default the one added
 last) at a date: the estimated support, its uncertainty, the change over
@@ -259,86 +261,176 @@ national projection approximates well:</p>
 <span><span class="co">#&gt; 4: GRUENE  GRÜNE 0.12816831    25</span></span>
 <span><span class="co">#&gt; 5:   NEOS   NEOS 0.06244160    12</span></span>
 <span><span class="co">#&gt; 6:   KPOE    KPÖ 0.03992564     0</span></span></code></pre></div>
+<p>The trend is uncertain, and so are the seats. With
+<code>simulations</code>, the shares are drawn from the uncertainty of
+the trend: <code>lower</code> and <code>upper</code> give the range of
+seats in 90 % of the simulations, <code>pSeats</code> the probability
+that a party passes the threshold.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/popSeats.html">popSeats</a></span><span class="op">(</span><span class="va">at</span>, seats <span class="op">=</span> <span class="fl">183</span>, threshold <span class="op">=</span> <span class="fl">0.04</span>, method <span class="op">=</span> <span class="st">'dhondt'</span>, simulations <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span>
+<span><span class="co">#&gt;     party   name      share seats lower upper pSeats</span></span>
+<span><span class="co">#&gt;    &lt;char&gt; &lt;char&gt;      &lt;num&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;  &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:   FPOE    FPÖ 0.37785585    74    69    76  1.000</span></span>
+<span><span class="co">#&gt; 2:   OEVP    ÖVP 0.21578371    42    39    44  1.000</span></span>
+<span><span class="co">#&gt; 3:   SPOE    SPÖ 0.15342759    30    27    31  1.000</span></span>
+<span><span class="co">#&gt; 4: GRUENE  GRÜNE 0.12816831    25    22    26  1.000</span></span>
+<span><span class="co">#&gt; 5:   NEOS   NEOS 0.06244160    12    10    13  1.000</span></span>
+<span><span class="co">#&gt; 6:   KPOE    KPÖ 0.03992564     0     0     8  0.488</span></span></code></pre></div>
+<p><code><a href="../reference/popCoalitions.html">popCoalitions()</a></code> adds up the simulated seats of
+coalitions and gives the probability of a majority, either for given
+coalitions or for every plausible combination of up to three
+parties:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/popCoalitions.html">popCoalitions</a></span><span class="op">(</span><span class="va">at</span>, seats <span class="op">=</span> <span class="fl">183</span>, threshold <span class="op">=</span> <span class="fl">0.04</span>,</span>
+<span>              coalitions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">'ÖVP-SPÖ-NEOS'</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'OEVP'</span>, <span class="st">'SPOE'</span>, <span class="st">'NEOS'</span><span class="op">)</span>,</span>
+<span>                                <span class="st">'FPÖ-ÖVP'</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'FPOE'</span>, <span class="st">'OEVP'</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;       coalition        parties seats lower upper pMajority</span></span>
+<span><span class="co">#&gt;          &lt;char&gt;         &lt;char&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: ÖVP-SPÖ-NEOS OEVP+SPOE+NEOS    84    79    86         0</span></span>
+<span><span class="co">#&gt; 2:      FPÖ-ÖVP      FPOE+OEVP   116   110   118         1</span></span>
+<span><span class="fu"><a href="../reference/popCoalitions.html">popCoalitions</a></span><span class="op">(</span><span class="va">at</span>, seats <span class="op">=</span> <span class="fl">183</span>, threshold <span class="op">=</span> <span class="fl">0.04</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           coalition          parties seats lower upper pMajority</span></span>
+<span><span class="co">#&gt;              &lt;char&gt;           &lt;char&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;     &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:        FPOE+OEVP        FPOE+OEVP   116   110   118    1.0000</span></span>
+<span><span class="co">#&gt; 2:        FPOE+SPOE        FPOE+SPOE   104    98   106    1.0000</span></span>
+<span><span class="co">#&gt; 3:      FPOE+GRUENE      FPOE+GRUENE    99    93   101    0.9960</span></span>
+<span><span class="co">#&gt; 4: OEVP+SPOE+GRUENE OEVP+SPOE+GRUENE    97    91    99    0.9225</span></span>
+<span><span class="co">#&gt; 5:   FPOE+NEOS+KPOE   FPOE+NEOS+KPOE    86    84    92    0.0775</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="polling-firms">Polling firms<a class="anchor" aria-label="anchor" href="#polling-firms"></a>
 </h2>
-<p><code><a href="../reference/popFirms.html">popFirms()</a></code> lists the firms behind the polls,
-<code><a href="../reference/popHouseEffects.html">popHouseEffects()</a></code> estimates how much each firm deviates
-from the consensus for each party, i.e. from a smoothed Kalman trend
-through all polls:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/popFirms.html">popFirms</a></span><span class="op">(</span><span class="va">at</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                               firm polls      first       last sampleSize</span></span>
-<span><span class="co">#&gt;                             &lt;char&gt; &lt;int&gt;     &lt;Date&gt;     &lt;Date&gt;      &lt;int&gt;</span></span>
-<span><span class="co">#&gt;  1:               Research Affairs   162 2016-12-08 2021-09-30        600</span></span>
-<span><span class="co">#&gt;  2:                Unique Research   119 2014-06-06 2026-06-18        800</span></span>
-<span><span class="co">#&gt;  3:                         Market    97 2013-10-20 2025-07-30        800</span></span>
-<span><span class="co">#&gt;  4:                         Gallup    81 2013-10-03 2016-12-10        400</span></span>
-<span><span class="co">#&gt;  5:                            OGM    57 2014-04-06 2026-05-20        984</span></span>
-<span><span class="co">#&gt;  6:              Market/Lazarsfeld    53 2022-05-19 2024-04-25       1000</span></span>
-<span><span class="co">#&gt;  7:              Market Lazarsfeld    45 2024-04-24 2026-09-15       2000</span></span>
-<span><span class="co">#&gt;  8:              Market-Lazarsfeld    40 2023-03-29 2026-05-19       2000</span></span>
-<span><span class="co">#&gt;  9: Market/Lazarsfeld Gesellschaft    34 2023-05-24 2024-04-29       1000</span></span>
-<span><span class="co">#&gt; 10:                           IFDD    32 2021-02-01 2026-07-17       1054</span></span>
-<span><span class="co">#&gt; 11:                    Peter Hajek    23 2018-08-29 2024-02-29        800</span></span>
-<span><span class="co">#&gt; 12:                           IMAS    20 2014-01-18 2018-05-09       1000</span></span>
-<span><span class="co">#&gt; 13:                Unique research    20 2020-01-10 2021-07-08        802</span></span>
-<span><span class="co">#&gt; 14:                          Hajek    18 2013-12-12 2018-10-31        700</span></span>
-<span><span class="co">#&gt; 15:                        Spectra     9 2017-03-26 2025-02-14       1000</span></span>
-<span><span class="co">#&gt; 16:                       Karmasin     8 2013-10-26 2020-01-15       2000</span></span>
-<span><span class="co">#&gt; 17:                meinungsraum.at     7 2014-01-15 2017-05-14        800</span></span>
-<span><span class="co">#&gt; 18:                       AKonsult     5 2014-09-19 2017-08-04        603</span></span>
-<span><span class="co">#&gt; 19:                 Demox Research     5 2019-02-08 2019-09-14       1250</span></span>
-<span><span class="co">#&gt; 20:                            GfK     5 2017-04-06 2018-12-09       1500</span></span>
-<span><span class="co">#&gt; 21:                           IFES     3 2015-06-23 2017-07-04       1000</span></span>
-<span><span class="co">#&gt; 22:                           INSA     3 2025-08-27 2026-07-15       1000</span></span>
-<span><span class="co">#&gt; 23:                           SORA     2 2016-08-20 2019-06-10        956</span></span>
-<span><span class="co">#&gt; 24:                        cmatzka     2 2017-07-12 2017-09-22        800</span></span>
-<span><span class="co">#&gt; 25:                 IFES (for SPÖ)     1 2019-07-10 2019-07-10        936</span></span>
-<span><span class="co">#&gt; 26:              Market-Lazarsfelt     1 2024-03-27 2024-03-27       2000</span></span>
-<span><span class="co">#&gt; 27:    Unique Research/Peter Hajek     1 2023-06-29 2023-06-29        804</span></span>
-<span><span class="co">#&gt; 28:                            ogm     1 2025-04-09 2025-04-09       1042</span></span>
-<span><span class="co">#&gt;                               firm polls      first       last sampleSize</span></span>
-<span><span class="co">#&gt;                             &lt;char&gt; &lt;int&gt;     &lt;Date&gt;     &lt;Date&gt;      &lt;int&gt;</span></span>
-<span></span>
-<span><span class="va">effects</span> <span class="op">=</span> <span class="fu"><a href="../reference/popHouseEffects.html">popHouseEffects</a></span><span class="op">(</span><span class="va">at</span>, minPolls <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<p><code><a href="../reference/popFirms.html">popFirms()</a></code> lists the firms behind the polls. Spellings
+that only differ in case, accents, punctuation or white space are merged
+when the data is read; <code>spellings</code> shows under which names a
+firm is published:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/popFirms.html">popFirms</a></span><span class="op">(</span><span class="va">at</span><span class="op">)</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">firm</span>, <span class="va">polls</span>, <span class="va">last</span>, <span class="va">spellings</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;                               firm polls       last</span></span>
+<span><span class="co">#&gt;                             &lt;char&gt; &lt;int&gt;     &lt;Date&gt;</span></span>
+<span><span class="co">#&gt;  1:               Research Affairs   162 2021-09-30</span></span>
+<span><span class="co">#&gt;  2:                Unique Research   139 2026-06-18</span></span>
+<span><span class="co">#&gt;  3:              Market/Lazarsfeld   138 2026-09-15</span></span>
+<span><span class="co">#&gt;  4:                         Market    97 2025-07-30</span></span>
+<span><span class="co">#&gt;  5:                         Gallup    81 2016-12-10</span></span>
+<span><span class="co">#&gt;  6:                            OGM    58 2026-05-20</span></span>
+<span><span class="co">#&gt;  7: Market/Lazarsfeld Gesellschaft    34 2024-04-29</span></span>
+<span><span class="co">#&gt;  8:                           IFDD    32 2026-07-17</span></span>
+<span><span class="co">#&gt;  9:                    Peter Hajek    23 2024-02-29</span></span>
+<span><span class="co">#&gt; 10:                           IMAS    20 2018-05-09</span></span>
+<span><span class="co">#&gt; 11:                          Hajek    18 2018-10-31</span></span>
+<span><span class="co">#&gt; 12:                        Spectra     9 2025-02-14</span></span>
+<span><span class="co">#&gt; 13:                       Karmasin     8 2020-01-15</span></span>
+<span><span class="co">#&gt; 14:                meinungsraum.at     7 2017-05-14</span></span>
+<span><span class="co">#&gt; 15:                       AKonsult     5 2017-08-04</span></span>
+<span><span class="co">#&gt; 16:                 Demox Research     5 2019-09-14</span></span>
+<span><span class="co">#&gt; 17:                            GfK     5 2018-12-09</span></span>
+<span><span class="co">#&gt; 18:                           IFES     3 2017-07-04</span></span>
+<span><span class="co">#&gt; 19:                           INSA     3 2026-07-15</span></span>
+<span><span class="co">#&gt; 20:                           SORA     2 2019-06-10</span></span>
+<span><span class="co">#&gt; 21:                        cmatzka     2 2017-09-22</span></span>
+<span><span class="co">#&gt; 22:                 IFES (for SPÖ)     1 2019-07-10</span></span>
+<span><span class="co">#&gt; 23:              Market-Lazarsfelt     1 2024-03-27</span></span>
+<span><span class="co">#&gt; 24:    Unique Research/Peter Hajek     1 2023-06-29</span></span>
+<span><span class="co">#&gt;                               firm polls       last</span></span>
+<span><span class="co">#&gt;                             &lt;char&gt; &lt;int&gt;     &lt;Date&gt;</span></span>
+<span><span class="co">#&gt;                                                     spellings</span></span>
+<span><span class="co">#&gt;                                                        &lt;char&gt;</span></span>
+<span><span class="co">#&gt;  1:                                          Research Affairs</span></span>
+<span><span class="co">#&gt;  2:                         Unique Research | Unique research</span></span>
+<span><span class="co">#&gt;  3: Market/Lazarsfeld | Market Lazarsfeld | Market-Lazarsfeld</span></span>
+<span><span class="co">#&gt;  4:                                                    Market</span></span>
+<span><span class="co">#&gt;  5:                                                    Gallup</span></span>
+<span><span class="co">#&gt;  6:                                                 OGM | ogm</span></span>
+<span><span class="co">#&gt;  7:                            Market/Lazarsfeld Gesellschaft</span></span>
+<span><span class="co">#&gt;  8:                                                      IFDD</span></span>
+<span><span class="co">#&gt;  9:                                               Peter Hajek</span></span>
+<span><span class="co">#&gt; 10:                                                      IMAS</span></span>
+<span><span class="co">#&gt; 11:                                                     Hajek</span></span>
+<span><span class="co">#&gt; 12:                                                   Spectra</span></span>
+<span><span class="co">#&gt; 13:                                                  Karmasin</span></span>
+<span><span class="co">#&gt; 14:                                           meinungsraum.at</span></span>
+<span><span class="co">#&gt; 15:                                                  AKonsult</span></span>
+<span><span class="co">#&gt; 16:                                            Demox Research</span></span>
+<span><span class="co">#&gt; 17:                                                       GfK</span></span>
+<span><span class="co">#&gt; 18:                                                      IFES</span></span>
+<span><span class="co">#&gt; 19:                                                      INSA</span></span>
+<span><span class="co">#&gt; 20:                                                      SORA</span></span>
+<span><span class="co">#&gt; 21:                                                   cmatzka</span></span>
+<span><span class="co">#&gt; 22:                                            IFES (for SPÖ)</span></span>
+<span><span class="co">#&gt; 23:                                         Market-Lazarsfelt</span></span>
+<span><span class="co">#&gt; 24:                               Unique Research/Peter Hajek</span></span>
+<span><span class="co">#&gt;                                                     spellings</span></span>
+<span><span class="co">#&gt;                                                        &lt;char&gt;</span></span></code></pre></div>
+<p>Anything beyond that needs knowledge about the firms and is left to
+<code><a href="../reference/popRenameFirms.html">popRenameFirms()</a></code>, e.g. to merge a typo or a firm published
+with and without the first name of its founder:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">at</span> <span class="op">=</span> <span class="fu"><a href="../reference/popRenameFirms.html">popRenameFirms</a></span><span class="op">(</span><span class="va">at</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Peter Hajek'</span> <span class="op">=</span> <span class="st">'Hajek'</span>, <span class="st">'Market-Lazarsfelt'</span> <span class="op">=</span> <span class="st">'Market-Lazarsfeld'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><code><a href="../reference/popHouseEffects.html">popHouseEffects()</a></code> estimates how much each firm deviates
+from the average firm for each party. Trend and effects are estimated
+together, so a firm that publishes many polls cannot pull the trend
+towards itself. As the effects are assumed to be constant, only the
+polls since the last election are used here:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">recent</span> <span class="op">=</span> <span class="va">at</span></span>
+<span><span class="va">recent</span><span class="op">$</span><span class="va">polls</span> <span class="op">=</span> <span class="va">at</span><span class="op">$</span><span class="va">polls</span><span class="op">[</span><span class="va">date</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2024-09-29'</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">effects</span> <span class="op">=</span> <span class="fu"><a href="../reference/popHouseEffects.html">popHouseEffects</a></span><span class="op">(</span><span class="va">recent</span>, minPolls <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="co"># percentage points, one row per firm</span></span>
 <span><span class="va">effects</span><span class="op">[</span>, <span class="va">effect</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fl">100</span><span class="op">*</span><span class="va">effect</span>, <span class="fl">1</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">effects</span>, <span class="va">firm</span> <span class="op">~</span> <span class="va">party</span>, value.var <span class="op">=</span> <span class="st">'effect'</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;firm&gt;</span></span>
-<span><span class="co">#&gt;                               firm  BIER  FPOE GRUENE   HCS Jetzt  KPOE   MFG</span></span>
-<span><span class="co">#&gt;                             &lt;char&gt; &lt;num&gt; &lt;num&gt;  &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:                         Gallup    NA   0.2    0.2    NA    NA    NA    NA</span></span>
-<span><span class="co">#&gt;  2:                          Hajek    NA   0.4    0.0    NA    NA    NA    NA</span></span>
-<span><span class="co">#&gt;  3:                           IFDD    NA  -0.2   -0.2    NA    NA   0.2    NA</span></span>
-<span><span class="co">#&gt;  4:                           IMAS    NA  -1.0    0.4    NA    NA    NA    NA</span></span>
-<span><span class="co">#&gt;  5:                         Market  -0.2   0.2    0.3    NA   0.1  -0.3    NA</span></span>
-<span><span class="co">#&gt;  6:              Market Lazarsfeld    NA   0.2    0.0    NA    NA   0.1    NA</span></span>
-<span><span class="co">#&gt;  7:              Market-Lazarsfeld   0.0   0.0    0.0    NA    NA   0.0    NA</span></span>
-<span><span class="co">#&gt;  8:              Market/Lazarsfeld   0.0   0.1    0.0    NA    NA    NA  -0.1</span></span>
-<span><span class="co">#&gt;  9: Market/Lazarsfeld Gesellschaft    NA  -0.1    0.1    NA    NA   0.1    NA</span></span>
-<span><span class="co">#&gt; 10:                            OGM    NA  -0.1    0.1    NA  -0.1   0.1    NA</span></span>
-<span><span class="co">#&gt; 11:                    Peter Hajek    NA   0.4    0.2    NA    NA    NA    NA</span></span>
-<span><span class="co">#&gt; 12:               Research Affairs    NA  -0.2   -0.2   0.1   0.1    NA    NA</span></span>
-<span><span class="co">#&gt; 13:                Unique Research    NA   0.1    0.1    NA   0.0   0.0   0.6</span></span>
-<span><span class="co">#&gt; 14:                Unique research    NA   1.5    0.5    NA    NA    NA    NA</span></span>
-<span><span class="co">#&gt;      NEOS  OEVP  SPOE    TS</span></span>
-<span><span class="co">#&gt;     &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span></span>
-<span><span class="co">#&gt;  1:   0.3  -0.3   0.0    NA</span></span>
-<span><span class="co">#&gt;  2:   0.5   0.1  -0.1    NA</span></span>
-<span><span class="co">#&gt;  3:  -0.3   0.2   0.3    NA</span></span>
-<span><span class="co">#&gt;  4:  -1.0   1.5   0.7   0.2</span></span>
-<span><span class="co">#&gt;  5:   0.3  -0.4   0.1   0.0</span></span>
-<span><span class="co">#&gt;  6:   0.0  -0.2   0.0    NA</span></span>
-<span><span class="co">#&gt;  7:   0.2   0.0   0.0    NA</span></span>
-<span><span class="co">#&gt;  8:   0.4  -0.3   0.3    NA</span></span>
-<span><span class="co">#&gt;  9:   0.5  -0.3   0.2    NA</span></span>
-<span><span class="co">#&gt; 10:  -0.2   0.4   0.2    NA</span></span>
-<span><span class="co">#&gt; 11:  -0.3   0.4  -0.4    NA</span></span>
-<span><span class="co">#&gt; 12:   0.1   0.2  -0.5    NA</span></span>
-<span><span class="co">#&gt; 13:   0.2   0.3   0.0   0.1</span></span>
-<span><span class="co">#&gt; 14:   0.2  -0.1  -0.7    NA</span></span></code></pre></div>
+<span><span class="co">#&gt;                 firm  FPOE GRUENE  KPOE  NEOS  OEVP  SPOE</span></span>
+<span><span class="co">#&gt;               &lt;char&gt; &lt;num&gt;  &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: Market-Lazarsfeld     0      0     0     0     0     0</span></span></code></pre></div>
+<p>With <code>houseEffects = TRUE</code>, <code><a href="../reference/popAddTrend.html">popAddTrend()</a></code>
+corrects the polls by these effects before calculating the trend:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">recent</span> <span class="op">=</span> <span class="fu"><a href="../reference/popAddTrend.html">popAddTrend</a></span><span class="op">(</span><span class="va">recent</span>, name <span class="op">=</span> <span class="st">'corrected'</span>, type <span class="op">=</span> <span class="st">'kalman'</span>,</span>
+<span>                     args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>smoothing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>                     interpolations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>linearInterpolation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                     houseEffects <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">recent</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'2024-09-29'</span>, <span class="cn">NA</span><span class="op">)</span>, bands <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<div class="figure">
+<img src="figures/pollofpolls-unnamed-chunk-18-1.png" alt="Smoothed Kalman trend of the polls as published and of the polls corrected by house effects, since the 2024 election"><p class="caption">
+plot of chunk unnamed-chunk-18
+</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="accuracy-at-past-elections">Accuracy at past elections<a class="anchor" aria-label="anchor" href="#accuracy-at-past-elections"></a>
+</h2>
+<p>How good are these trends? <code><a href="../reference/popAccuracy.html">popAccuracy()</a></code> goes back to
+every election in the data, calculates the trends from the polls
+published before it and compares them with the result. The last poll of
+every firm is evaluated as well.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="../reference/popAccuracy.html">popAccuracy</a></span><span class="op">(</span><span class="va">at</span>, trends <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    <span class="st">'kalman'</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">'kalman'</span><span class="op">)</span>,</span>
+<span>    <span class="st">'kalman, corrected'</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">'kalman'</span>, houseEffects <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>    <span class="st">'mean of 30 days'</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">'weightedMeanLastDays'</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># mean absolute error per party, in percentage points</span></span>
+<span><span class="va">accuracy</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span>elections <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/duplicated.html" class="external-link">uniqueN</a></span><span class="op">(</span><span class="va">election</span><span class="op">)</span>, mae <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fl">100</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">error</span><span class="op">)</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>         by <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">kind</span>, <span class="va">source</span><span class="op">)</span><span class="op">]</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">mae</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;       kind            source elections   mae</span></span>
+<span><span class="co">#&gt;     &lt;char&gt;            &lt;char&gt;     &lt;int&gt; &lt;num&gt;</span></span>
+<span><span class="co">#&gt;  1:   firm           cmatzka         1  0.58</span></span>
+<span><span class="co">#&gt;  2:   firm              IFDD         1  0.83</span></span>
+<span><span class="co">#&gt;  3:   firm               OGM         3  1.13</span></span>
+<span><span class="co">#&gt;  4:   firm   Unique Research         3  1.20</span></span>
+<span><span class="co">#&gt;  5:  trend            kalman         3  1.21</span></span>
+<span><span class="co">#&gt;  6:  trend kalman, corrected         3  1.23</span></span>
+<span><span class="co">#&gt;  7:  trend   mean of 30 days         3  1.26</span></span>
+<span><span class="co">#&gt;  8:   firm Market-Lazarsfeld         1  1.29</span></span>
+<span><span class="co">#&gt;  9:   firm             Hajek         1  1.52</span></span>
+<span><span class="co">#&gt; 10:   firm            Market         3  1.53</span></span>
+<span><span class="co">#&gt; 11:   firm           Spectra         2  1.58</span></span>
+<span><span class="co">#&gt; 12:   firm          Karmasin         1  1.78</span></span>
+<span><span class="co">#&gt; 13:   firm  Research Affairs         2  1.83</span></span>
+<span><span class="co">#&gt; 14:   firm    Demox Research         1  2.50</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="custom-trends">Custom trends<a class="anchor" aria-label="anchor" href="#custom-trends"></a>
@@ -348,7 +440,7 @@ through all polls:</p>
 table with the columns <code>date</code>, <code>party</code> and
 <code>value</code> (and optionally <code>variance</code>). For example,
 the median of the polls of the last few weeks:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rollingMedian</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">days</span> <span class="op">=</span> <span class="fl">21</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">polls</span> <span class="op">=</span> <span class="fu"><a href="../reference/popLong.html">popLong</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span><span class="va">date</span> <span class="op">&gt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2024-01-01'</span><span class="op">)</span><span class="op">]</span></span>
 <span>    <span class="va">dates</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">polls</span><span class="op">$</span><span class="va">date</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">polls</span><span class="op">$</span><span class="va">date</span><span class="op">)</span>, by <span class="op">=</span> <span class="st">'week'</span><span class="op">)</span></span>
@@ -359,11 +451,11 @@ the median of the polls of the last few weeks:</p>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">at</span> <span class="op">=</span> <span class="fu"><a href="../reference/popAddTrend.html">popAddTrend</a></span><span class="op">(</span><span class="va">at</span>, type <span class="op">=</span> <span class="va">rollingMedian</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>days <span class="op">=</span> <span class="fl">28</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">at</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'2024-01-01'</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="figure">
-<img src="figures/pollofpolls-unnamed-chunk-14-1.png" alt="Polls with the smoothed Kalman trend and a weekly rolling median as second line type"><p class="caption">
-plot of chunk unnamed-chunk-14
+<img src="figures/pollofpolls-unnamed-chunk-21-1.png" alt="Polls with the smoothed Kalman trend and a weekly rolling median as second line type"><p class="caption">
+plot of chunk unnamed-chunk-21
 </p>
 </div>
 </div>
@@ -373,7 +465,7 @@ plot of chunk unnamed-chunk-14
 <p><code><a href="../reference/popDownload.html">popDownload()</a></code> saves the data of several polls as
 published, and <code>popRead(dir = ...)</code> reads it back without
 sending a request:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/popDownload.html">popDownload</a></span><span class="op">(</span><span class="st">'polls'</span>, codes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'AT-parliament'</span>, <span class="st">'DE-parliament'</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">de</span> <span class="op">=</span> <span class="fu"><a href="../reference/popRead.html">popRead</a></span><span class="op">(</span><span class="st">'DE-parliament'</span>, dir <span class="op">=</span> <span class="st">'polls'</span><span class="op">)</span></span></code></pre></div>
 <p>Within a session, <code>options(pollofpolls.dataMaxAge = 3600)</code>

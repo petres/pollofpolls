@@ -12,7 +12,8 @@ popAddTrend(
   name = NULL,
   type = "kalman",
   args = list(),
-  interpolations = list()
+  interpolations = list(),
+  houseEffects = FALSE
 )
 ```
 
@@ -40,6 +41,16 @@ popAddTrend(
   Named list of interpolations that should be applied to the trend, see
   details.
 
+- houseEffects:
+
+  Whether the polls should be corrected by the house effects of their
+  firms (see
+  [`popHouseEffects()`](https://petres.github.io/pollofpolls/reference/popHouseEffects.md))
+  before the trend is calculated. The correction removes the differences
+  between the firms, not the errors they share, so it does not
+  necessarily bring the trend closer to election results; see
+  [`popAccuracy()`](https://petres.github.io/pollofpolls/reference/popAccuracy.md).
+
 ## Value
 
 The `popPolls` object with the trend added to `$trends`.
@@ -51,16 +62,21 @@ Available trend functions are:
 - `kalman`:
 
   Kalman filter, arguments: `sd = 0.003`, the daily standard deviation
-  of the true support on the share scale, and `smoothing = FALSE`. With
-  `smoothing = TRUE` every estimate takes the later polls into account
-  as well (Rauch-Tung-Striebel smoother). The estimates are calculated
-  for the dates with polls only; together with `linearInterpolation` the
-  smoothed trend reproduces POLITICO's daily `kalmanSmooth` trend.
+  of the true support on the share scale, `smoothing = FALSE` and
+  `missingSampleSize = "firm"`. With `smoothing = TRUE` every estimate
+  takes the later polls into account as well (Rauch-Tung-Striebel
+  smoother). The estimates are calculated for the dates with polls only;
+  together with `linearInterpolation` the smoothed trend reproduces
+  POLITICO's daily `kalmanSmooth` trend. Polls are weighted by their
+  sample size; polls without one get the median sample size of their
+  firm (or of all polls), or the number given as `missingSampleSize`.
+  POLITICO uses 400, so `missingSampleSize = 400` reproduces its trends
+  exactly.
 
 - `kalmanKFAS`:
 
   Kalman filter based on the KFAS package, arguments: `sd = 0.003`,
-  `smoothing = TRUE`.
+  `smoothing = TRUE`, `missingSampleSize = "firm"`.
 
 - `weightedMeanLastDays`:
 

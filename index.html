@@ -11,8 +11,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Load and Analyse European Poll of Polls Data">
-<meta name="description" content="Downloads national voting intention polls published by POLITICOs &quot;Poll of Polls&quot; project and provides poll aggregation methods (Kalman filtering and smoothing, weighted rolling means) similar to those used by POLITICO and the original pollofpolls.eu website, seat projections and house effect estimates. Polls, election results and trends are returned as data.table objects and can be visualised with base graphics or ggplot2'.">
-<meta property="og:description" content="Downloads national voting intention polls published by POLITICOs &quot;Poll of Polls&quot; project and provides poll aggregation methods (Kalman filtering and smoothing, weighted rolling means) similar to those used by POLITICO and the original pollofpolls.eu website, seat projections and house effect estimates. Polls, election results and trends are returned as data.table objects and can be visualised with base graphics or ggplot2'.">
+<meta name="description" content="Downloads national voting intention polls published by POLITICOs &quot;Poll of Polls&quot; project and provides poll aggregation methods (Kalman filtering and smoothing, weighted rolling means) similar to those used by POLITICO and the original pollofpolls.eu website, seat projections with coalition probabilities, house effect estimates and corrections, and out-of-sample evaluations against election results. Polls, election results and trends are returned as data.table objects and can be visualised with base graphics or ggplot2'.">
+<meta property="og:description" content="Downloads national voting intention polls published by POLITICOs &quot;Poll of Polls&quot; project and provides poll aggregation methods (Kalman filtering and smoothing, weighted rolling means) similar to those used by POLITICO and the original pollofpolls.eu website, seat projections with coalition probabilities, house effect estimates and corrections, and out-of-sample evaluations against election results. Polls, election results and trends are returned as data.table objects and can be visualised with base graphics or ggplot2'.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">pollofpolls</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -104,7 +104,7 @@
 <tbody>
 <tr>
 <td><code>$polls</code></td>
-<td>one row per poll: <code>date</code>, <code>dateFrom</code>, <code>firm</code>, <code>n</code> and one column per party</td>
+<td>one row per poll: <code>date</code>, <code>dateFrom</code>, <code>firm</code>, <code>firmRaw</code>, <code>n</code> and one column per party</td>
 </tr>
 <tr>
 <td><code>$elections</code></td>
@@ -118,6 +118,10 @@
 <tr>
 <td><code>$trends</code></td>
 <td>named list of trends in long format (<code>date</code>, <code>party</code>, <code>value</code>, <code>variance</code>)</td>
+</tr>
+<tr>
+<td><code>$events</code></td>
+<td>events POLITICO marks in its charts (<code>date</code>, <code>name</code>), shown by the plots</td>
 </tr>
 <tr>
 <td><code>$options</code></td>
@@ -143,13 +147,13 @@
 <tr>
 <td><code>kalman</code></td>
 <td>
-<code>sd = 0.003</code>, <code>smoothing = FALSE</code>
+<code>sd = 0.003</code>, <code>smoothing = FALSE</code>, <code>missingSampleSize = "firm"</code>
 </td>
 </tr>
 <tr>
 <td><code>kalmanKFAS</code></td>
 <td>
-<code>sd = 0.003</code>, <code>smoothing = TRUE</code> (needs the <code>KFAS</code> package)</td>
+<code>sd = 0.003</code>, <code>smoothing = TRUE</code>, <code>missingSampleSize = "firm"</code> (needs the <code>KFAS</code> package)</td>
 </tr>
 <tr>
 <td><code>weightedMeanLastDays</code></td>
@@ -169,30 +173,58 @@
 <code class="sourceCode R"><span><span class="va">de</span> <span class="op">=</span> <span class="fu"><a href="reference/popAddTrend.html">popAddTrend</a></span><span class="op">(</span><span class="va">de</span>, name <span class="op">=</span> <span class="st">'Kalman smoothed'</span>, type <span class="op">=</span> <span class="st">'kalman'</span>,</span>
 <span>                 args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>smoothing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>                 interpolations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>linearInterpolation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Polls without a sample size are given the median sample size of their firm. POLITICO counts them as 400 respondents instead; <code>missingSampleSize = 400</code> reproduces its trends exactly.</p>
+<p><code>popAddTrend(..., houseEffects = TRUE)</code> corrects every poll by the house effect of its firm (see below) before the trend is calculated. This removes the differences between firms, not the errors they share, so at past elections the corrected trends were not more accurate (see <code><a href="reference/popAccuracy.html">popAccuracy()</a></code>).</p>
 <p><code>type</code> also takes a function, which gets the <code>popPolls</code> object as <code>data</code> and returns a <code>data.frame</code> with the columns <code>date</code>, <code>party</code> and <code>value</code> (optionally <code>variance</code>):</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lastPoll</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="fu"><a href="reference/popLong.html">popLong</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span>value <span class="op">=</span> <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/last.html" class="external-link">last</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">date</span>, <span class="va">party</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">de</span> <span class="op">=</span> <span class="fu"><a href="reference/popAddTrend.html">popAddTrend</a></span><span class="op">(</span><span class="va">de</span>, type <span class="op">=</span> <span class="va">lastPoll</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="standings-seats-and-pollsters">Standings, seats and pollsters<a class="anchor" aria-label="anchor" href="#standings-seats-and-pollsters"></a>
+<h2 id="standings-seats-and-coalitions">Standings, seats and coalitions<a class="anchor" aria-label="anchor" href="#standings-seats-and-coalitions"></a>
 </h2>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Support, uncertainty and change over the last 30 days according to the trend added last</span></span>
 <span><span class="fu"><a href="reference/popLatest.html">popLatest</a></span><span class="op">(</span><span class="va">de</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Seat projection (national level only, no direct mandates or overhang seats)</span></span>
-<span><span class="fu"><a href="reference/popSeats.html">popSeats</a></span><span class="op">(</span><span class="va">de</span>, seats <span class="op">=</span> <span class="fl">630</span>, threshold <span class="op">=</span> <span class="fl">0.05</span>, method <span class="op">=</span> <span class="st">'sainte-lague'</span><span class="op">)</span></span>
+<span><span class="co"># Seat projection (national level only, no direct mandates or overhang seats),</span></span>
+<span><span class="co"># with seat ranges simulated from the uncertainty of the trend</span></span>
+<span><span class="fu"><a href="reference/popSeats.html">popSeats</a></span><span class="op">(</span><span class="va">de</span>, seats <span class="op">=</span> <span class="fl">630</span>, threshold <span class="op">=</span> <span class="fl">0.05</span>, method <span class="op">=</span> <span class="st">'sainte-lague'</span>, simulations <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Polling firms and their deviation from the consensus, by party</span></span>
+<span><span class="co"># Probability of a majority, for given coalitions or all plausible ones</span></span>
+<span><span class="fu"><a href="reference/popCoalitions.html">popCoalitions</a></span><span class="op">(</span><span class="va">de</span>, seats <span class="op">=</span> <span class="fl">630</span>, threshold <span class="op">=</span> <span class="fl">0.05</span>, method <span class="op">=</span> <span class="st">'sainte-lague'</span>,</span>
+<span>              coalitions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Union'</span>, <span class="st">'SPD'</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Union'</span>, <span class="st">'GRUENE'</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/popCoalitions.html">popCoalitions</a></span><span class="op">(</span><span class="va">de</span>, seats <span class="op">=</span> <span class="fl">630</span>, threshold <span class="op">=</span> <span class="fl">0.05</span>, method <span class="op">=</span> <span class="st">'sainte-lague'</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="polling-firms">Polling firms<a class="anchor" aria-label="anchor" href="#polling-firms"></a>
+</h2>
+<p>Firm names that only differ in case, accents, punctuation or white space (<code>INSA/YouGov</code> and <code>INSA YouGov</code>) are merged when the data is read; the name as published is kept in <code>firmRaw</code>. Everything else, such as a renamed firm, can be merged with <code><a href="reference/popRenameFirms.html">popRenameFirms()</a></code> or, for every <code><a href="reference/popRead.html">popRead()</a></code>, with <code>options(pollofpolls.firms = c('Peter Hajek' = 'Hajek'))</code>.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Firms, number of polls and the spellings they are published under</span></span>
 <span><span class="fu"><a href="reference/popFirms.html">popFirms</a></span><span class="op">(</span><span class="va">de</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Deviation of every firm from the average firm, by party</span></span>
 <span><span class="fu"><a href="reference/popHouseEffects.html">popHouseEffects</a></span><span class="op">(</span><span class="va">de</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="accuracy-at-past-elections">Accuracy at past elections<a class="anchor" aria-label="anchor" href="#accuracy-at-past-elections"></a>
+</h2>
+<p><code><a href="reference/popAccuracy.html">popAccuracy()</a></code> evaluates trends and firms against the election results in the data. For every election, the trends are calculated only from the polls published before it, so the comparison is out of sample:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">accuracy</span> <span class="op">=</span> <span class="fu"><a href="reference/popAccuracy.html">popAccuracy</a></span><span class="op">(</span><span class="va">de</span>, trends <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    kalman <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">'kalman'</span><span class="op">)</span>,</span>
+<span>    adjusted <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">'kalman'</span>, houseEffects <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>    <span class="st">'mean 30d'</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">'weightedMeanLastDays'</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># mean absolute error per party, in percentage points</span></span>
+<span><span class="va">accuracy</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span>mae <span class="op">=</span> <span class="fl">100</span><span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">error</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">kind</span>, <span class="va">source</span><span class="op">)</span><span class="op">]</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">mae</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="plotting-with-ggplot2">Plotting with ggplot2<a class="anchor" aria-label="anchor" href="#plotting-with-ggplot2"></a>
 </h2>
 <p><code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code> draws the same as <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> with <a href="https://ggplot2.tidyverse.org/" class="external-link">ggplot2</a> and returns an ordinary ggplot object:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">de</span> <span class="op">=</span> <span class="fu"><a href="reference/popRead.html">popRead</a></span><span class="op">(</span><span class="st">'DE-parliament'</span><span class="op">)</span></span>
@@ -253,13 +285,20 @@
 <td><code>60</code></td>
 <td>request timeout, seconds</td>
 </tr>
+<tr>
+<td><code>pollofpolls.firms</code></td>
+<td><code>NULL</code></td>
+<td>firms to rename in every <code><a href="reference/popRead.html">popRead()</a></code>, see <code><a href="reference/popRenameFirms.html">popRenameFirms()</a></code>
+</td>
+</tr>
 </tbody>
 </table>
 <p><code><a href="reference/popCacheClear.html">popCacheClear()</a></code> drops the cache, <code>popRead(code, metadata = FALSE)</code> skips the website lookup completely.</p>
 <p><code><a href="reference/popDownload.html">popDownload()</a></code> saves the data of several polls (by default all of them) as JSON files, exactly as published, and <code>popRead(dir = ...)</code> reads them back without sending a request:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/popDownload.html">popDownload</a></span><span class="op">(</span><span class="st">'polls'</span>, codes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'AT-parliament'</span>, <span class="st">'DE-parliament'</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">at</span> <span class="op">=</span> <span class="fu"><a href="reference/popRead.html">popRead</a></span><span class="op">(</span><span class="st">'AT-parliament'</span>, dir <span class="op">=</span> <span class="st">'polls'</span><span class="op">)</span></span></code></pre></div>
+<p>POLITICO’s CDN refuses requests from many cloud servers (HTTP 403), e.g. CI runners. Download the data on a local machine with <code><a href="reference/popDownload.html">popDownload()</a></code>, copy the files to the server and read them there with <code>popRead(dir = ...)</code>.</p>
 </div>
 <div class="section level2">
 <h2 id="data-source">Data source<a class="anchor" aria-label="anchor" href="#data-source"></a>

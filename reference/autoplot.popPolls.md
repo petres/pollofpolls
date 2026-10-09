@@ -2,15 +2,16 @@
 
 The ggplot2 counterpart of
 [`plot.popPolls()`](https://petres.github.io/pollofpolls/reference/plot.popPolls.md):
-polls as points, trends as lines and, for trends with a variance,
-uncertainty bands. The result is an ordinary ggplot object that can be
-extended with further layers, scales and themes.
+polls as points, trends as lines, for trends with a variance,
+uncertainty bands and the events in `object$events` as vertical lines.
+The result is an ordinary ggplot object that can be extended with
+further layers, scales and themes.
 
 ## Usage
 
 ``` r
 # S3 method for class 'popPolls'
-autoplot(object, ..., bands = TRUE, level = 0.95, xlim = NULL)
+autoplot(object, ..., bands = TRUE, level = 0.95, xlim = NULL, events = TRUE)
 ```
 
 ## Arguments
@@ -35,6 +36,10 @@ autoplot(object, ..., bands = TRUE, level = 0.95, xlim = NULL)
 
   Date range to show, dates or ISO date strings; `NA` keeps the
   respective end of the data range.
+
+- events:
+
+  Whether events should be marked.
 
 ## Value
 

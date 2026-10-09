@@ -9,8 +9,10 @@
 <url><loc>https://petres.github.io/pollofpolls/reference/autoplot.popPolls.html</loc></url>
 <url><loc>https://petres.github.io/pollofpolls/reference/index.html</loc></url>
 <url><loc>https://petres.github.io/pollofpolls/reference/plot.popPolls.html</loc></url>
+<url><loc>https://petres.github.io/pollofpolls/reference/popAccuracy.html</loc></url>
 <url><loc>https://petres.github.io/pollofpolls/reference/popAddTrend.html</loc></url>
 <url><loc>https://petres.github.io/pollofpolls/reference/popCacheClear.html</loc></url>
+<url><loc>https://petres.github.io/pollofpolls/reference/popCoalitions.html</loc></url>
 <url><loc>https://petres.github.io/pollofpolls/reference/popCreate.html</loc></url>
 <url><loc>https://petres.github.io/pollofpolls/reference/popDownload.html</loc></url>
 <url><loc>https://petres.github.io/pollofpolls/reference/popFirms.html</loc></url>
@@ -19,6 +21,7 @@
 <url><loc>https://petres.github.io/pollofpolls/reference/popLatest.html</loc></url>
 <url><loc>https://petres.github.io/pollofpolls/reference/popLong.html</loc></url>
 <url><loc>https://petres.github.io/pollofpolls/reference/popRead.html</loc></url>
+<url><loc>https://petres.github.io/pollofpolls/reference/popRenameFirms.html</loc></url>
 <url><loc>https://petres.github.io/pollofpolls/reference/popSeats.html</loc></url>
 <url><loc>https://petres.github.io/pollofpolls/reference/print.popPolls.html</loc></url>
 </urlset>

@@ -3,13 +3,14 @@
 Draws the individual polls as points and every trend added with
 [`popAddTrend()`](https://petres.github.io/pollofpolls/reference/popAddTrend.md)
 (or already published by POLITICO) as a line. Trends that come with a
-variance, such as `kalman`, are drawn with an uncertainty band.
+variance, such as `kalman`, are drawn with an uncertainty band, the
+events in `x$events` as vertical lines.
 
 ## Usage
 
 ``` r
 # S3 method for class 'popPolls'
-plot(x, ..., bands = TRUE, level = 0.95)
+plot(x, ..., bands = TRUE, level = 0.95, events = TRUE)
 ```
 
 ## Arguments
@@ -33,6 +34,10 @@ plot(x, ..., bands = TRUE, level = 0.95)
 - level:
 
   Coverage of the uncertainty bands.
+
+- events:
+
+  Whether events should be marked.
 
 ## Value
 

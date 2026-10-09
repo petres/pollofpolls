@@ -9,7 +9,7 @@ by plot.popPolls() and popAddTrend(). Normally created by popRead()."></head><bo
 
     <a class="navbar-brand me-2" href="../index.html">pollofpolls</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,6 +54,7 @@ by <code><a href="plot.popPolls.html">plot.popPolls()</a></code> and <code><a hr
 <span>  trends <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  elections <span class="op">=</span> <span class="fu">data.table</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  events <span class="op">=</span> <span class="fu">emptyEvents</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  code <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  retrieved <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -87,6 +88,10 @@ columns <code>date</code>, <code>party</code>, <code>value</code> and optionally
 
 <dt id="arg-elections">elections<a class="anchor" aria-label="anchor" href="#arg-elections"></a></dt>
 <dd><p><code>data.table</code> of election results in the same shape as <code>polls</code>.</p></dd>
+
+
+<dt id="arg-events">events<a class="anchor" aria-label="anchor" href="#arg-events"></a></dt>
+<dd><p><code>data.table</code> of events with the columns <code>date</code> and <code>name</code>.</p></dd>
 
 
 <dt id="arg-code">code<a class="anchor" aria-label="anchor" href="#arg-code"></a></dt>

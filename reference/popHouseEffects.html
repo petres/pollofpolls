@@ -11,7 +11,7 @@ means that the firm sees the party stronger than the other firms."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">pollofpolls</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +50,7 @@ means that the firm sees the party stronger than the other firms.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">popHouseEffects</span><span class="op">(</span><span class="va">x</span>, trend <span class="op">=</span> <span class="cn">NULL</span>, minPolls <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">popHouseEffects</span><span class="op">(</span><span class="va">x</span>, trend <span class="op">=</span> <span class="cn">NULL</span>, minPolls <span class="op">=</span> <span class="fl">5</span>, sd <span class="op">=</span> <span class="fl">0.003</span>, iterations <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -62,12 +62,20 @@ means that the firm sees the party stronger than the other firms.</p>
 
 
 <dt id="arg-trend">trend<a class="anchor" aria-label="anchor" href="#arg-trend"></a></dt>
-<dd><p>Name of the trend in <code>x$trends</code> the polls are compared to. By
-default a smoothed Kalman trend is calculated.</p></dd>
+<dd><p>Name of a trend in <code>x$trends</code> the polls are compared to as they
+are, instead of estimating trend and effects together.</p></dd>
 
 
 <dt id="arg-minpolls">minPolls<a class="anchor" aria-label="anchor" href="#arg-minpolls"></a></dt>
 <dd><p>Firms with fewer polls of a party are left out.</p></dd>
+
+
+<dt id="arg-sd">sd<a class="anchor" aria-label="anchor" href="#arg-sd"></a></dt>
+<dd><p>Daily standard deviation of the Kalman trend, see <code><a href="popAddTrend.html">popAddTrend()</a></code>.</p></dd>
+
+
+<dt id="arg-iterations">iterations<a class="anchor" aria-label="anchor" href="#arg-iterations"></a></dt>
+<dd><p>Maximum number of iterations.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -78,18 +86,30 @@ error).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The trend is calculated from the polls of all firms, including the one
-evaluated, so the effects of firms that publish a large share of the polls
-are underestimated.</p>
+    <p>By default the effects are estimated together with the trend they are
+measured against: a smoothed Kalman trend is calculated from the polls
+corrected by the current effects, the effects are updated with the remaining
+deviations, and so on until they no longer change. Otherwise a firm that
+publishes a large share of the polls would pull the trend towards itself and
+its effect would be underestimated. The effects are measured relative to the
+average of the firms, each counting once however many polls it publishes:
+an error all firms share, as seen at some elections, cannot be told apart
+from the trend.</p>
+<p>The effects are assumed to be constant over time, so for long series it can
+be worth restricting the polls to the last years first.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="va">de</span> <span class="op">=</span> <span class="fu"><a href="popRead.html">popRead</a></span><span class="op">(</span><span class="st">'DE-parliament'</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">de</span><span class="op">$</span><span class="va">polls</span> <span class="op">=</span> <span class="va">de</span><span class="op">$</span><span class="va">polls</span><span class="op">[</span><span class="va">date</span> <span class="op">&gt;=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">'2022-01-01'</span><span class="op">)</span><span class="op">]</span></span></span>
 <span class="r-in"><span><span class="va">effects</span> <span class="op">=</span> <span class="fu">popHouseEffects</span><span class="op">(</span><span class="va">de</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># one row per firm, one column per party</span></span></span>
 <span class="r-in"><span><span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/dcast.data.table.html" class="external-link">dcast</a></span><span class="op">(</span><span class="va">effects</span>, <span class="va">firm</span> <span class="op">~</span> <span class="va">party</span>, value.var <span class="op">=</span> <span class="st">'effect'</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># a trend of polls corrected by the house effects</span></span></span>
+<span class="r-in"><span><span class="va">de</span> <span class="op">=</span> <span class="fu"><a href="popAddTrend.html">popAddTrend</a></span><span class="op">(</span><span class="va">de</span>, type <span class="op">=</span> <span class="st">'kalman'</span>, houseEffects <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

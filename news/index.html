@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">pollofpolls</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,27 @@
       <small>Source: <a href="https://github.com/petres/pollofpolls/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.0" id="pollofpolls-070">pollofpolls 0.7.0<a class="anchor" aria-label="anchor" href="#pollofpolls-070"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-7-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-7-0"></a></h3>
+<ul><li>Firm names that only differ in case, accents, punctuation or white space (<code>"INSA/YouGov"</code> and <code>"INSA YouGov"</code>, <code>"Tecnè"</code> and <code>"Tecne"</code>) are merged under their most frequent spelling; the published name is kept in the new <code>firmRaw</code> column. <code><a href="../reference/popRenameFirms.html">popRenameFirms()</a></code> and <code>options(pollofpolls.firms)</code> merge firms beyond that. <code><a href="../reference/popFirms.html">popFirms()</a></code> lists the spellings of every firm.</li>
+<li>Polls without a sample size (a quarter of all polls, more than half in IT, NL and SE) are weighted with the median sample size of their firm instead of 400 respondents in the Kalman trends. Out of sample, on 110 elections, this is slightly more accurate. <code>missingSampleSize = 400</code> reproduces POLITICO’s trends exactly.</li>
+<li>
+<code><a href="../reference/popRead.html">popRead()</a></code> reads the events POLITICO marks in its charts into <code>$events</code>; <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> and <code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code> show them as dotted lines (<code>events = FALSE</code> to switch them off).</li>
+<li>
+<code>popSeats(simulations = )</code> turns the uncertainty of the trend into seat ranges and the probability of passing the threshold. <code><a href="../reference/popCoalitions.html">popCoalitions()</a></code> gives the seats and the probability of a majority of coalitions, either given ones or every plausible combination of up to three parties.</li>
+<li>
+<code><a href="../reference/popAccuracy.html">popAccuracy()</a></code> evaluates trends and firms against past election results, out of sample: the trends only see the polls published before each election.</li>
+<li>
+<code><a href="../reference/popHouseEffects.html">popHouseEffects()</a></code> estimates trend and house effects together, so that a firm publishing many polls can no longer pull the trend towards itself. The effects are relative to the average firm. <code>popAddTrend(houseEffects = TRUE)</code> corrects the polls by them before calculating a trend. This removes the differences between firms, not their common errors: out of sample, the corrected trends were not closer to election results.</li>
+<li>A refused request (HTTP 403) explains that POLITICO blocks many cloud servers and how to work around it.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-7-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-7-0"></a></h3>
+<ul><li>A poll share of 0 no longer turns a poll into an exact observation in the Kalman trends.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.0" id="pollofpolls-060">pollofpolls 0.6.0<a class="anchor" aria-label="anchor" href="#pollofpolls-060"></a></h2>
 <div class="section level3">

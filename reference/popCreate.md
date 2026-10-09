@@ -18,6 +18,7 @@ popCreate(
   trends = list(),
   name = NULL,
   elections = data.table(),
+  events = emptyEvents(),
   code = NULL,
   retrieved = NULL
 )
@@ -50,6 +51,10 @@ popCreate(
 - elections:
 
   `data.table` of election results in the same shape as `polls`.
+
+- events:
+
+  `data.table` of events with the columns `date` and `name`.
 
 - code:
 

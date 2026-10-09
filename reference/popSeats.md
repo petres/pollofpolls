@@ -1,7 +1,9 @@
 # Seat Projection
 
 Converts vote shares into seats with a highest averages (D'Hondt,
-Sainte-Laguë) or largest remainder (Hare-Niemeyer) method.
+Sainte-Laguë) or largest remainder (Hare-Niemeyer) method. With
+`simulations`, the uncertainty of the trend is turned into a range of
+seats.
 
 ## Usage
 
@@ -11,7 +13,10 @@ popSeats(
   seats,
   threshold = 0,
   method = c("dhondt", "sainte-lague", "hare"),
-  ...
+  simulations = 0,
+  level = 0.9,
+  trend = NULL,
+  date = NULL
 )
 ```
 
@@ -19,8 +24,8 @@ popSeats(
 
 - x:
 
-  A `popPolls` object, whose shares are taken from
-  [`popLatest()`](https://petres.github.io/pollofpolls/reference/popLatest.md),
+  A `popPolls` object, whose shares are taken from a trend (see
+  [`popLatest()`](https://petres.github.io/pollofpolls/reference/popLatest.md)),
   or a named numeric vector of vote shares.
 
 - seats:
@@ -35,16 +40,29 @@ popSeats(
 
   `"dhondt"`, `"sainte-lague"` or `"hare"`.
 
-- ...:
+- simulations:
 
-  Passed on to
-  [`popLatest()`](https://petres.github.io/pollofpolls/reference/popLatest.md),
-  e.g. `trend` or `date`.
+  Number of simulations, `0` for none. Needs a trend with a variance,
+  such as `kalman`.
+
+- level:
+
+  Coverage of the seat range given by `lower` and `upper`.
+
+- trend:
+
+  Name of the trend in `x$trends`, defaults to the one added last.
+
+- date:
+
+  Date of the projection, defaults to the last date of the trend.
 
 ## Value
 
 A `data.table` with the columns `party`, `name` (if `x` is a `popPolls`
-object), `share` and `seats`, sorted by seats.
+object), `share` and `seats`, sorted by seats. With simulations also
+`lower` and `upper`, the range of seats, and `pSeats`, the share of
+simulations in which the party wins seats.
 
 ## Details
 
@@ -55,6 +73,12 @@ not taken into account. For example,
 `seats = 630, threshold = 0.05, method = "sainte-lague"` approximates
 the German Bundestag, `seats = 183, threshold = 0.04, method = "dhondt"`
 the Austrian Nationalrat.
+
+The simulations draw the share of every party independently from a
+normal distribution with the value and variance of the trend. Shares of
+different parties are in fact negatively correlated, so the ranges are
+approximate. Use [`set.seed()`](https://rdrr.io/r/base/Random.html) for
+reproducible results.
 
 ## Examples
 
@@ -72,6 +96,7 @@ popSeats(c(A = 0.35, B = 0.30, C = 0.20, D = 0.10, E = 0.05),
 if (FALSE) { # \dontrun{
 de = popRead('DE-parliament')
 de = popAddTrend(de, name = 'kalman', type = 'kalman')
-popSeats(de, seats = 630, threshold = 0.05, method = 'sainte-lague')
+popSeats(de, seats = 630, threshold = 0.05, method = 'sainte-lague',
+         simulations = 2000)
 } # }
 ```

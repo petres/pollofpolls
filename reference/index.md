@@ -8,6 +8,8 @@
   : Get Info About Available Polls
 - [`popDownload()`](https://petres.github.io/pollofpolls/reference/popDownload.md)
   : Download Poll Data
+- [`popRenameFirms()`](https://petres.github.io/pollofpolls/reference/popRenameFirms.md)
+  : Rename Polling Firms
 - [`popCacheClear()`](https://petres.github.io/pollofpolls/reference/popCacheClear.md)
   : Clear the Cache
 
@@ -22,10 +24,14 @@
   : Current Standings
 - [`popSeats()`](https://petres.github.io/pollofpolls/reference/popSeats.md)
   : Seat Projection
+- [`popCoalitions()`](https://petres.github.io/pollofpolls/reference/popCoalitions.md)
+  : Coalitions
 - [`popHouseEffects()`](https://petres.github.io/pollofpolls/reference/popHouseEffects.md)
   : House Effects
 - [`popFirms()`](https://petres.github.io/pollofpolls/reference/popFirms.md)
   : Polling Firms
+- [`popAccuracy()`](https://petres.github.io/pollofpolls/reference/popAccuracy.md)
+  : Accuracy at Past Elections
 - [`popLong()`](https://petres.github.io/pollofpolls/reference/popLong.md)
   : Polls and Trends in Long Format
 
