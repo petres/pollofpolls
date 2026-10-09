@@ -1,8 +1,9 @@
 # HTTP access and on-disk caching --------------------------------------------
 #
 # Everything in this file is internal. The package talks to a public website,
-# so it tries hard to be a good citizen: it identifies itself, waits between
-# requests, retries transient failures and caches what it has already seen.
+# so it tries hard to be a good citizen: it identifies itself, accepts
+# compressed responses, waits between requests, retries transient failures as
+# advised by the server and caches what it has already seen.
 
 .popCache <- new.env(parent = emptyenv())
 
@@ -12,73 +13,111 @@ popUserAgent = function() {
     sprintf('pollofpolls/%s (R package; +https://github.com/petres/pollofpolls)', version)
 }
 
-# Reads an URL into a single string, identifying the package as the caller.
-readUrl = function(url) {
-    timeout = getOption('pollofpolls.timeout', 60)
-    old = options(timeout = max(getOption('timeout', 60), timeout))
-    on.exit(options(old), add = TRUE)
+endpointUrl = function(code)
+    sprintf(.baseEndpoint, utils::URLencode(code, reserved = TRUE))
 
-    con = base::url(url, open = 'rb', headers = c('User-Agent' = popUserAgent()))
-    on.exit(close(con), add = TRUE)
+# Performs a single GET request. Never throws: transport errors (DNS, timeouts,
+# ...) are reported with status NA, so that the caller can decide whether a
+# failure is worth retrying. curl asks for gzip compressed responses by default.
+httpGet = function(url) {
+    handle = curl::new_handle(useragent = popUserAgent(),
+                              timeout = getOption('pollofpolls.timeout', 60))
 
-    paste(readLines(con, warn = FALSE, encoding = 'UTF-8'), collapse = '\n')
+    response = tryCatch(curl::curl_fetch_memory(url, handle = handle),
+                        error = function(e) e)
+    if (inherits(response, 'error'))
+        return(list(status = NA_integer_, content = NULL, headers = list(),
+                    reason = conditionMessage(response)))
+
+    content = rawToChar(response$content)
+    Encoding(content) = 'UTF-8'
+    list(status = response$status_code,
+         content = content,
+         headers = curl::parse_headers_list(response$headers),
+         reason = sprintf('HTTP status %d', response$status_code))
 }
 
-# Wraps readUrl() and reports the HTTP status instead of throwing, so that the
-# caller can decide whether a failure is worth retrying.
-tryUrl = function(url) {
-    status = NA_integer_
-    reason = NULL
-
-    content = withCallingHandlers(
-        tryCatch(readUrl(url), error = function(e) {
-            # the warning below is raised first and carries the better message
-            if (is.null(reason)) reason <<- conditionMessage(e)
-            NULL
-        }),
-        warning = function(w) {
-            reason <<- conditionMessage(w)
-            statusText = sub(".*HTTP status was '([0-9]{3}).*", '\\1', reason)
-            if (grepl('^[0-9]{3}$', statusText))
-                status <<- as.integer(statusText)
-            invokeRestart('muffleWarning')
-        })
-
-    list(content = content, status = status, reason = reason)
-}
+isSuccess = function(status)
+    !is.na(status) && status >= 200L && status < 300L
 
 # Only rate limiting and server side errors are worth a second attempt.
 isRetryable = function(status)
     is.na(status) || status == 429L || status >= 500L
+
+# Seconds to wait as requested by a Retry-After header (either a number of
+# seconds or an HTTP date), NULL if there is no usable header.
+retryAfter = function(headers) {
+    value = headers[['retry-after']]
+    if (is.null(value) || !nzchar(value))
+        return(NULL)
+
+    seconds = suppressWarnings(as.numeric(value))
+    if (is.na(seconds)) {
+        date = tryCatch(curl::parse_date(value), error = function(e) NA)
+        if (length(date) != 1 || is.na(date))
+            return(NULL)
+        seconds = as.numeric(difftime(date, Sys.time(), units = 'secs'))
+    }
+
+    max(0, seconds)
+}
+
+# Wrapper around Sys.sleep(), so that tests can replace it.
+wait = function(seconds) {
+    if (seconds > 0)
+        Sys.sleep(seconds)
+    invisible(NULL)
+}
 
 #' @param url URL to download.
 #' @param attempts Number of attempts before giving up.
 #' @noRd
 fetchUrl = function(url, attempts = getOption('pollofpolls.attempts', 3L)) {
     delay = getOption('pollofpolls.retryDelay', 1)
-    result = list(content = NULL, status = NA_integer_, reason = NULL)
+    maxDelay = getOption('pollofpolls.maxRetryDelay', 60)
 
-    for (i in seq_len(attempts)) {
-        result = tryUrl(url)
-        if (!is.null(result$content))
+    for (i in seq_len(max(1L, attempts))) {
+        result = httpGet(url)
+        if (isSuccess(result$status))
             return(result$content)
-        if (!isRetryable(result$status))
+        if (!isRetryable(result$status) || i == attempts)
             break
-        if (i < attempts)
-            Sys.sleep(delay * 2^(i - 1))
+
+        requested = retryAfter(result$headers)
+        if (!is.null(requested) && requested > maxDelay)
+            stop(sprintf("Failed to fetch '%s': %s, the server asks to wait %d seconds before trying again",
+                         url, result$reason, ceiling(requested)), call. = FALSE)
+
+        wait(if (is.null(requested)) min(maxDelay, delay * 2^(i - 1)) else requested)
     }
 
-    stop(sprintf("Failed to fetch '%s'%s", url,
-                 if (is.null(result$reason)) '' else paste0(': ', result$reason)),
-         call. = FALSE)
+    stop(errorCondition(sprintf("Failed to fetch '%s': %s", url, result$reason),
+                        class = 'pollofpolls_http_error', status = result$status, call = NULL))
 }
 
 # Waits between consecutive requests to the same host.
 throttle = function() {
-    delay = getOption('pollofpolls.requestDelay', 0.5)
-    if (delay > 0)
-        Sys.sleep(delay)
-    invisible(NULL)
+    wait(getOption('pollofpolls.requestDelay', 0.5))
+}
+
+# Payload of the data endpoint for `code` and the time it was retrieved. Cached
+# on disk only if options(pollofpolls.dataMaxAge) is set to a positive number of
+# seconds.
+fetchData = function(code) {
+    maxAge = getOption('pollofpolls.dataMaxAge', 0)
+    key = cacheKey('data', code)
+
+    if (maxAge > 0) {
+        cached = cacheRead(key, maxAge = maxAge)
+        if (is.list(cached) && is.character(cached$content))
+            return(cached)
+    }
+
+    result = list(content = fetchUrl(endpointUrl(code)), retrieved = Sys.time())
+    if (maxAge > 0)
+        cacheWrite(key, result)
+
+    result
 }
 
 
@@ -89,6 +128,9 @@ cacheDir = function()
 
 cacheEnabled = function()
     isTRUE(getOption('pollofpolls.cache', TRUE))
+
+cacheKey = function(prefix, code)
+    paste0(prefix, '-', gsub('[^A-Za-z0-9_.-]', '_', code))
 
 cacheFile = function(key)
     file.path(cacheDir(), paste0(key, '.rds'))
@@ -120,14 +162,15 @@ cacheWrite = function(key, value) {
     }, error = function(e) FALSE))
 }
 
-#' Clear the Cached Poll Index
+#' Clear the Cache
 #'
 #' `popGetInfo()` and `popRead()` remember which polls exist and which colours
-#' belong to which party. The index is kept for the running session and, unless
-#' `options(pollofpolls.cache = FALSE)` is set, in
+#' belong to which party. If `options(pollofpolls.dataMaxAge)` is set, the
+#' downloaded poll data is kept as well. Everything is kept for the running
+#' session and, unless `options(pollofpolls.cache = FALSE)` is set, in
 #' `tools::R_user_dir("pollofpolls", "cache")`. Use this function to drop it.
 #'
-#' @return Invisibly `TRUE` if a cache file was removed, `FALSE` otherwise.
+#' @return Invisibly `TRUE` if cache files were removed, `FALSE` otherwise.
 #' @export
 #'
 #' @examples
@@ -137,9 +180,9 @@ cacheWrite = function(key, value) {
 popCacheClear = function() {
     rm(list = ls(.popCache), envir = .popCache)
 
-    file = cacheFile('metadata')
-    if (file.exists(file))
-        return(invisible(file.remove(file)))
+    files = list.files(cacheDir(), pattern = '\\.rds$', full.names = TRUE)
+    if (length(files) == 0)
+        return(invisible(FALSE))
 
-    invisible(FALSE)
+    invisible(all(file.remove(files)))
 }

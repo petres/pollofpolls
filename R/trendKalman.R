@@ -41,12 +41,33 @@ kalmanTime = function(partyData, sd) {
     return (partyData[, k(.SD, .BY), by=date])
 }
 
+# Rauch-Tung-Striebel smoother for the random walk filtered by kalmanTime().
+# Runs backwards over the observation dates. The filtered state is overwritten
+# step by step, so m[i + 1] and P[i + 1] are already smoothed when step i reads
+# them, while m[i] and P[i] still hold the filtered state.
+kalmanSmooth = function(filtered, sd) {
+    m = filtered$value
+    P = filtered$variance
+    steps = diff(as.integer(filtered$date))*sd**2
+
+    for (i in rev(seq_along(steps))) {
+        predicted = P[i] + steps[i]
+        gain = if (predicted > 0) P[i]/predicted else 0
+        m[i] = m[i] + gain*(m[i + 1] - m[i])
+        P[i] = P[i] + gain**2*(P[i + 1] - predicted)
+    }
+
+    data.table(date = filtered$date, value = m, variance = P)
+}
+
 #' @import data.table
-kalman = function(data, sd = 0.003) {
+kalman = function(data, sd = 0.003, smoothing = FALSE) {
     pollData = observations(data)
     if (nrow(pollData) == 0)
         return(emptyLong())
 
+    # the variances are calculated on the share scale, so for seat based polls
+    # they have to be scaled back to seats in the end
     toProb = toProbFactor(data, pollData)
     pollData[, var := getPollVar(value/toProb, n)]
 
@@ -59,8 +80,11 @@ kalman = function(data, sd = 0.003) {
         result = kalmanTime(partyData, sd)
         if (sum(!is.na(result$value)) < 2)
             next
+        if (smoothing)
+            result = kalmanSmooth(result, sd)
 
-        trendData[[p]] = result[, .(date = as.date(date), party = p, value, variance)]
+        trendData[[p]] = result[, .(date = as.date(date), party = p, value,
+                                    variance = variance*toProb**2)]
     }
 
     rbindlist(trendData, fill = TRUE)

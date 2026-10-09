@@ -60,3 +60,49 @@ test_that('popRead honours the load argument', {
     expect_equal(nrow(de$elections), 0)
     expect_length(de$trends, 0)
 })
+
+test_that('firm names are cleaned of stray white space', {
+    payload = list(options = list(measure = 'p'), parties = list(A = 'A'),
+                   polls = list(list(date = '2024-01-01', firm = 'Forsa\t', parties = list(A = 20)),
+                                list(date = '2024-01-02', firm = ' Forsa  ', parties = list(A = 21)),
+                                list(date = '2024-01-03', firm = '', parties = list(A = 22)),
+                                list(date = '2024-01-04', firm = 'Research \u00adAffairs',
+                                     parties = list(A = 23))))
+
+    expect_equal(readJsonPayload(payload)$polls$firm, c('Forsa', 'Forsa', NA, 'Research Affairs'))
+})
+
+test_that('polls without a date are dated by their fieldwork or dropped', {
+    payload = list(options = list(measure = 'p'), parties = list(A = 'A'),
+                   polls = list(list(date = 'NA', date_from = '2024-01-05', parties = list(A = 20)),
+                                list(date = '2024-01-01', parties = list(A = 21)),
+                                list(date = '', parties = list(A = 22))))
+
+    expect_warning(polls <- readJsonPayload(payload)$polls, 'Dropped 1 poll')
+    expect_equal(polls$date, as.Date(c('2024-01-01', '2024-01-05')))
+    expect_equal(polls$A, c(0.21, 0.20))
+})
+
+test_that('popRead asks for a single code', {
+    expect_error(popRead(c('DE-parliament', 'AT-parliament')), 'single poll code')
+    expect_error(popRead(NA_character_), 'single poll code')
+})
+
+test_that('popRead explains unknown codes and broken responses', {
+    withr::local_options(pollofpolls.cache = FALSE)
+    local_mocked_bindings(fetchUrl = function(url) {
+        if (grepl('missing', url))
+            stop(errorCondition('Failed', class = 'pollofpolls_http_error', status = 404L))
+        '<html>maintenance</html>'
+    }, .package = 'pollofpolls')
+
+    expect_error(popRead('XX-missing', metadata = FALSE), "No poll data available for code 'XX-missing'")
+    expect_error(popRead('XX-broken', metadata = FALSE), "Could not parse the data of 'XX-broken'")
+})
+
+test_that('popRead records where and when the data was retrieved', {
+    de = readTestPolls()
+
+    expect_equal(de$code, 'DE-parliament')
+    expect_s3_class(de$retrieved, 'POSIXct')
+})

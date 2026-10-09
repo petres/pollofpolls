@@ -4,25 +4,32 @@
 \alias{plot.popPolls}
 \title{Plot polls}
 \usage{
-\method{plot}{popPolls}(x, ...)
+\method{plot}{popPolls}(x, ..., bands = TRUE, level = 0.95)
 }
 \arguments{
 \item{x}{A \code{popPolls} object.}
 
 \item{...}{Passed on to \code{\link[graphics:plot.default]{graphics::plot()}}, e.g. \code{xlim} to limit the date
-range. The y axis is scaled to the polls inside \code{xlim}.}
+range. \code{xlim} takes dates or ISO date strings, \code{NA} keeps the respective
+end of the data range. The y axis is scaled to the polls inside \code{xlim}.}
+
+\item{bands}{Whether uncertainty bands should be drawn.}
+
+\item{level}{Coverage of the uncertainty bands.}
 }
 \value{
 Invisibly \code{x}.
 }
 \description{
 Draws the individual polls as points and every trend added with
-\code{\link[=popAddTrend]{popAddTrend()}} (or already published by POLITICO) as a line.
+\code{\link[=popAddTrend]{popAddTrend()}} (or already published by POLITICO) as a line. Trends that
+come with a variance, such as \code{kalman}, are drawn with an uncertainty band.
 }
 \examples{
 \dontrun{
 de = popRead('DE-parliament')
+de = popAddTrend(de, name = 'kalman', type = 'kalman')
 plot(de)
-plot(de, xlim = as.Date(c('2024-01-01', '2025-01-01')))
+plot(de, xlim = c('2024-01-01', NA), level = 0.9)
 }
 }

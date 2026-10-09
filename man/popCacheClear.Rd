@@ -2,17 +2,18 @@
 % Please edit documentation in R/http.R
 \name{popCacheClear}
 \alias{popCacheClear}
-\title{Clear the Cached Poll Index}
+\title{Clear the Cache}
 \usage{
 popCacheClear()
 }
 \value{
-Invisibly \code{TRUE} if a cache file was removed, \code{FALSE} otherwise.
+Invisibly \code{TRUE} if cache files were removed, \code{FALSE} otherwise.
 }
 \description{
 \code{popGetInfo()} and \code{popRead()} remember which polls exist and which colours
-belong to which party. The index is kept for the running session and, unless
-\code{options(pollofpolls.cache = FALSE)} is set, in
+belong to which party. If \code{options(pollofpolls.dataMaxAge)} is set, the
+downloaded poll data is kept as well. Everything is kept for the running
+session and, unless \code{options(pollofpolls.cache = FALSE)} is set, in
 \code{tools::R_user_dir("pollofpolls", "cache")}. Use this function to drop it.
 }
 \examples{

@@ -1,3 +1,52 @@
+# pollofpolls 0.6.0
+
+## New features
+
+* `kalman()` gained `smoothing = TRUE`, a Rauch-Tung-Striebel smoother that
+  also takes later polls into account. Together with `linearInterpolation` it
+  reproduces POLITICO's `kalmanSmooth` trend, without needing KFAS.
+* `plot()` draws uncertainty bands for trends with a variance (`bands`,
+  `level`) and takes `xlim` as date strings, with `NA` for an open end.
+* `autoplot()` method for ggplot2 (suggested, not required).
+* `popAddTrend()` takes a function as `type`, for custom trends.
+* `popLong()` returns polls, elections or trends in long format.
+* `popLatest()` summarises a trend at a date: support, uncertainty, change and
+  the last election result.
+* `popSeats()` projects seats with the D'Hondt, Sainte-Laguë or Hare-Niemeyer
+  method and a threshold.
+* `popFirms()` lists the polling firms, `popHouseEffects()` estimates how much
+  each of them deviates from the consensus.
+* `popDownload()` saves the data of several polls as JSON files, which
+  `popRead(dir = ...)` reads back without a request.
+* Downloaded poll data can be cached with `options(pollofpolls.dataMaxAge)`.
+* A pkgdown site with a Get started article.
+
+## Improvements
+
+* `popRead()` is about five times faster; the published trends are parsed
+  column-wise instead of one date at a time.
+* Firm names are cleaned of stray and invisible white space, so that
+  `"Forsa"`, `"Forsa "` and `"Forsa\t"` count as one firm.
+* Requests are sent with curl: responses are compressed, HTTP status codes are
+  read directly and `Retry-After` is respected. A server asking for a break
+  longer than `pollofpolls.maxRetryDelay` stops the request instead of being
+  retried too early.
+* Interpolations keep the `variance` of a trend and the usual column order.
+* Polls without a publication date are dated by the start of their fieldwork,
+  or dropped with a warning if that is missing as well.
+* `popRead()` explains unknown codes, unreadable responses and vector input.
+* The objects returned by `popRead()` record the `code` and the time the data
+  was `retrieved`.
+* `popCacheClear()` removes all cache files.
+
+## Bug fixes
+
+* The `variance` of Kalman trends of seat based polls is given in seats; it was
+  on the share scale before.
+* `linearInterpolation` no longer fails for parties with a single value.
+* The plot legends leave out parties without data in the shown date range.
+* `Rplots.pdf` no longer ends up in the built package.
+
 # pollofpolls 0.5.0
 
 The data source moved from `pollofpolls.eu` to POLITICO's Poll of Polls

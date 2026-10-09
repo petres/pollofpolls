@@ -38,14 +38,98 @@ safeNumeric = function(value) {
     suppressWarnings(as.numeric(value))
 }
 
+# Single JSON value as a string, NA if missing.
+textValue = function(value)
+    if (isMissing(value)) NA_character_ else as.character(value)[[1]]
+
+# Removes invisible characters (soft hyphens, zero width spaces), collapses runs
+# of white space (including tabs and non-breaking spaces) and trims the result.
+# Firm names are published as "Forsa", "Forsa " and "Forsa\t", which would
+# otherwise count as three different firms.
+cleanText = function(x) {
+    # removed literally: PCRE rejects code points above 255 in patterns unless
+    # the input happens to contain non-ASCII characters
+    for (invisible in c('\u00ad', '\u200b', '\u200c', '\u200d', '\ufeff'))
+        x = gsub(invisible, '', x, fixed = TRUE)
+    x = trimws(gsub('[\\h\\v]+', ' ', x, perl = TRUE))
+    x[!is.na(x) & !nzchar(x)] = NA_character_
+    x
+}
+
 # Percentages are stored as 0-100, seats as absolute numbers.
 measureScale = function(pollOptions)
     if (identical(pollOptions$measure, 's')) 1 else 100
 
-partyValues = function(entry, partyCodes, valueScale) {
-    values = entry$parties
-    result = lapply(partyCodes, function(p) safeNumeric(values[[p]])/valueScale)
-    stats::setNames(result, partyCodes)
+# The parsers below build whole columns at once: the payloads hold up to
+# several hundred thousand values, which is too many to go through
+# data.table() or rbindlist() one entry at a time.
+
+fieldValues = function(entries, name)
+    vapply(entries, function(entry) textValue(entry[[name]]), character(1))
+
+partyColumns = function(entries, partyCodes, valueScale) {
+    columns = lapply(partyCodes, function(p)
+        vapply(entries, function(entry) safeNumeric(entry$parties[[p]]), numeric(1))/valueScale)
+    stats::setNames(columns, partyCodes)
+}
+
+parsePolls = function(entries, partyCodes, valueScale) {
+    if (length(entries) == 0)
+        return(data.table())
+
+    polls = data.table(date = safeDate(fieldValues(entries, 'date')),
+                       dateFrom = safeDate(fieldValues(entries, 'date_from')),
+                       firm = cleanText(fieldValues(entries, 'firm')),
+                       n = safeInteger(fieldValues(entries, 'sample_size')))
+    if (length(partyCodes) > 0)
+        polls[, (partyCodes) := partyColumns(entries, partyCodes, valueScale)]
+
+    # a poll without publication date is dated by the start of its fieldwork
+    polls[is.na(date), date := dateFrom]
+    polls[is.na(dateFrom), dateFrom := date]
+
+    undated = is.na(polls$date)
+    if (any(undated)) {
+        warning(sprintf('Dropped %d poll(s) without a date', sum(undated)), call. = FALSE)
+        polls = polls[!undated]
+    }
+
+    setorder(polls, 'date')
+}
+
+parseElections = function(entries, partyCodes, valueScale) {
+    if (length(entries) == 0)
+        return(data.table())
+
+    elections = data.table(date = safeDate(fieldValues(entries, 'date')))
+    if (length(partyCodes) > 0)
+        elections[, (partyCodes) := partyColumns(entries, partyCodes, valueScale)]
+
+    setorder(elections[!is.na(date)], 'date')
+}
+
+parseTrend = function(entries, valueScale) {
+    values = lapply(entries, function(entry) unlist(entry$parties))
+    counts = lengths(values)
+    if (sum(counts) == 0)
+        return(emptyLong())
+
+    values = unlist(unname(values))
+    trend = data.table(date = rep(safeDate(fieldValues(entries, 'date')), counts),
+                       party = names(values),
+                       value = safeNumeric(unname(values))/valueScale)
+
+    setorder(trend[!is.na(date)], 'date', 'party')
+}
+
+readPayload = function(code, dir) {
+    file = file.path(dir, paste0(code, '.json'))
+    if (!file.exists(file))
+        stop(sprintf("No file '%s', see popDownload()", file), call. = FALSE)
+
+    content = readChar(file, file.size(file), useBytes = TRUE)
+    Encoding(content) = 'UTF-8'
+    list(content = content, retrieved = file.mtime(file))
 }
 
 
@@ -59,9 +143,11 @@ partyValues = function(entry, partyCodes, valueScale) {
 #'   `measure` (`"p"` for percentages, `"s"` for seats).
 #' @param parties `data.table` with the columns `code`, `name` and `color`.
 #' @param trends Named list of trends, each a long `data.table` with the
-#'   columns `date`, `party` and `value`.
+#'   columns `date`, `party`, `value` and optionally `variance`.
 #' @param name Name of the poll, used as plot title.
 #' @param elections `data.table` of election results in the same shape as `polls`.
+#' @param code Poll code the data was read for.
+#' @param retrieved Time the data was downloaded.
 #'
 #' @return An object of class `popPolls`.
 #' @export
@@ -69,14 +155,17 @@ partyValues = function(entry, partyCodes, valueScale) {
 #' @examples
 #' popCreate()
 popCreate = function(polls = data.table(), options = list(measure = 'p'), parties = data.table(),
-                     trends = list(), name = NULL, elections = data.table()) {
+                     trends = list(), name = NULL, elections = data.table(),
+                     code = NULL, retrieved = NULL) {
     r = list(
         polls = polls,
         options = options,
         parties = parties,
         trends = trends,
         name = name,
-        elections = elections
+        elections = elections,
+        code = code,
+        retrieved = retrieved
     )
 
     class(r) <- c("popPolls", class(r))
@@ -86,12 +175,16 @@ popCreate = function(polls = data.table(), options = list(measure = 'p'), partie
 
 #' Read Poll Data
 #'
-#' Downloads a single Poll of Polls data set from POLITICO.
+#' Downloads a single Poll of Polls data set from POLITICO, or reads one saved
+#' by [popDownload()].
 #'
 #' Party colours and the descriptive name are not part of the data endpoint and
 #' are looked up on the corresponding website. That lookup needs one additional
 #' request, is cached (see [popCacheClear()]) and can be switched off with
 #' `metadata = FALSE`.
+#'
+#' Downloaded data is not cached unless `options(pollofpolls.dataMaxAge)` is set
+#' to the number of seconds a download may be reused.
 #'
 #' @param code Code of the poll data, e.g. `"DE-parliament"`. See [popGetInfo()]
 #'   for the available codes.
@@ -99,6 +192,8 @@ popCreate = function(polls = data.table(), options = list(measure = 'p'), partie
 #'   `"trends"` (the trends already published by POLITICO).
 #' @param metadata Whether party colours and the descriptive name should be
 #'   looked up on the website.
+#' @param dir Directory with the files written by [popDownload()]. If given,
+#'   the data is read from `<dir>/<code>.json` instead of being downloaded.
 #'
 #' @return A `popPolls` object. `$polls` holds one row per poll with the columns
 #'   `date`, `dateFrom`, `firm`, `n` (sample size) and one column per party,
@@ -110,11 +205,28 @@ popCreate = function(polls = data.table(), options = list(measure = 'p'), partie
 #' \dontrun{
 #' de = popRead('DE-parliament')
 #' plot(de)
+#'
+#' # read data saved by popDownload()
+#' popDownload('polls', codes = 'AT-parliament')
+#' at = popRead('AT-parliament', dir = 'polls', metadata = FALSE)
 #' }
-popRead = function(code, load = c('polls', 'elections', 'trends'), metadata = TRUE) {
+popRead = function(code, load = c('polls', 'elections', 'trends'), metadata = TRUE, dir = NULL) {
+    if (!is.character(code) || length(code) != 1 || is.na(code) || !nzchar(code))
+        stop('`code` must be a single poll code such as "DE-parliament", use lapply() to read several',
+             call. = FALSE)
     load = unique(match.arg(load, several.ok = TRUE))
-    raw = jsonlite::fromJSON(fetchUrl(sprintf(.baseEndpoint, code)), simplifyVector = FALSE)
 
+    payload = if (!is.null(dir)) readPayload(code, dir) else tryCatch(fetchData(code),
+        pollofpolls_http_error = function(e) {
+            if (identical(e$status, 404L))
+                stop(sprintf("No poll data available for code '%s', see popGetInfo()", code), call. = FALSE)
+            stop(e)
+        })
+
+    raw = tryCatch(jsonlite::parse_json(payload$content, simplifyVector = FALSE),
+                   error = function(e)
+                       stop(sprintf("Could not parse the data of '%s': %s", code, conditionMessage(e)),
+                            call. = FALSE))
     if (!is.list(raw) || is.null(raw$parties))
         stop(sprintf("No poll data available for code '%s', see popGetInfo()", code), call. = FALSE)
 
@@ -148,42 +260,19 @@ popRead = function(code, load = c('polls', 'elections', 'trends'), metadata = TR
         parties$color[noColor] = grDevices::hcl.colors(sum(noColor), palette = 'Dark 3')
 
     polls = data.table()
-    if ('polls' %in% load && length(raw$polls) > 0) {
-        polls = rbindlist(lapply(raw$polls, function(entry) {
-            date = safeDate(entry$date)
-            dateFrom = safeDate(entry$date_from)
-            c(list(date = date,
-                   dateFrom = if (is.na(dateFrom)) date else dateFrom,
-                   firm = if (isMissing(entry$firm)) NA_character_ else as.character(entry$firm),
-                   n = safeInteger(entry$sample_size)),
-              partyValues(entry, partyCodes, valueScale))
-        }), fill = TRUE)
-        setorder(polls, 'date')
-    }
+    if ('polls' %in% load)
+        polls = parsePolls(raw$polls, partyCodes, valueScale)
 
     elections = data.table()
-    if ('elections' %in% load && length(raw$results) > 0) {
-        elections = rbindlist(lapply(raw$results, function(entry)
-            c(list(date = safeDate(entry$date)),
-              partyValues(entry, partyCodes, valueScale))), fill = TRUE)
-        setorder(elections, 'date')
-    }
+    if ('elections' %in% load)
+        elections = parseElections(raw$results, partyCodes, valueScale)
 
     trends = list()
     if ('trends' %in% load && length(raw$trends) > 0) {
         for (trendName in names(raw$trends)) {
-            entries = raw$trends[[trendName]]
-            trend = rbindlist(lapply(entries, function(entry) {
-                if (length(entry$parties) == 0)
-                    return(NULL)
-                values = unlist(entry$parties)
-                data.table(date = safeDate(entry$date),
-                           party = names(values),
-                           value = safeNumeric(values)/valueScale)
-            }), fill = TRUE)
-
+            trend = parseTrend(raw$trends[[trendName]], valueScale)
             if (nrow(trend) > 0)
-                trends[[trendName]] = setorder(trend, 'date', 'party')
+                trends[[trendName]] = trend
         }
     }
 
@@ -193,7 +282,8 @@ popRead = function(code, load = c('polls', 'elections', 'trends'), metadata = TR
     else if (!isMissing(pollOptions$iso2))
         name = paste(pollOptions$iso2, code, sep = ' - ')
 
-    popCreate(polls, pollOptions, parties, trends, name = name, elections = elections)
+    popCreate(polls, pollOptions, parties, trends, name = name, elections = elections,
+              code = code, retrieved = payload$retrieved)
 }
 
 #' Get Info About Available Polls
@@ -221,7 +311,7 @@ popGetInfo = function(refresh = FALSE) {
                         iso2 = sub('-.*', '', code),
                         name = ifelse(is.na(title) | !nzchar(title), code, title),
                         page = url,
-                        endpoint = sprintf(.baseEndpoint, code))]
+                        endpoint = endpointUrl(code))]
     setorder(info, 'code')
     info
 }
@@ -229,11 +319,15 @@ popGetInfo = function(refresh = FALSE) {
 #' Plot polls
 #'
 #' Draws the individual polls as points and every trend added with
-#' [popAddTrend()] (or already published by POLITICO) as a line.
+#' [popAddTrend()] (or already published by POLITICO) as a line. Trends that
+#' come with a variance, such as `kalman`, are drawn with an uncertainty band.
 #'
 #' @param x A `popPolls` object.
 #' @param ... Passed on to [graphics::plot()], e.g. `xlim` to limit the date
-#'   range. The y axis is scaled to the polls inside `xlim`.
+#'   range. `xlim` takes dates or ISO date strings, `NA` keeps the respective
+#'   end of the data range. The y axis is scaled to the polls inside `xlim`.
+#' @param bands Whether uncertainty bands should be drawn.
+#' @param level Coverage of the uncertainty bands.
 #'
 #' @return Invisibly `x`.
 #' @export
@@ -241,10 +335,11 @@ popGetInfo = function(refresh = FALSE) {
 #' @examples
 #' \dontrun{
 #' de = popRead('DE-parliament')
+#' de = popAddTrend(de, name = 'kalman', type = 'kalman')
 #' plot(de)
-#' plot(de, xlim = as.Date(c('2024-01-01', '2025-01-01')))
+#' plot(de, xlim = c('2024-01-01', NA), level = 0.9)
 #' }
-plot.popPolls = function(x, ...) {
+plot.popPolls = function(x, ..., bands = TRUE, level = 0.95) {
     data = x
     pollsExisting = nrow(data$polls) > 0
     trendsExisting = length(data$trends) > 0
@@ -255,10 +350,8 @@ plot.popPolls = function(x, ...) {
     pollsLong = if (pollsExisting) toLong(data) else NULL
     trendsLong = if (trendsExisting) rbindlist(data$trends, fill = TRUE) else NULL
 
-    # c() drops the Date class when the first argument is NULL, so the range is
-    # converted back explicitly
-    dates = c(pollsLong$date, trendsLong$date)
-    xlim = if (is.null(dots$xlim)) as.date(range(dates)) else as.Date(dots$xlim)
+    xlim = dateLimits(c(pollsLong$date, trendsLong$date), dots$xlim)
+    dots$xlim = xlim
 
     inRange = function(d) if (is.null(d)) NULL else d[d$date >= xlim[1] & d$date <= xlim[2]]
     values = c(inRange(pollsLong)$value, inRange(trendsLong)$value)
@@ -285,15 +378,32 @@ plot.popPolls = function(x, ...) {
     }
     axis(1, at = xLabels, labels = format(xLabels, "%d. %b '%y"), cex.axis = .7, las = 2)
 
-    alphaPoints = 'AA'
+    partyColor = function(p, alpha = 1)
+        grDevices::adjustcolor(data$parties[code == p]$color, alpha.f = alpha)
+
+    alphaPoints = 0.67
     if (trendsExisting) {
-        alphaPoints = '55'
+        alphaPoints = 0.33
+
+        # all bands first, so that they do not cover the lines of other trends
+        if (bands) {
+            for (trend in data$trends) {
+                bounds = trendBounds(trend, level)
+                for (p in data$parties$code) {
+                    band = bounds[party == p & !is.na(lower)]
+                    if (nrow(band) > 1)
+                        polygon(c(band$date, rev(band$date)), c(band$upper, rev(band$lower)),
+                                col = partyColor(p, 0.2), border = NA)
+                }
+            }
+        }
+
         for (i in seq_along(data$trends)) {
             trend = data$trends[[i]]
             for (p in data$parties$code) {
                 linePoints = trend[party == p, .(date, value)]
                 if (nrow(linePoints) > 0)
-                    lines(linePoints, col = data$parties[code == p]$color, lty = i)
+                    lines(linePoints, col = partyColor(p), lty = i)
             }
         }
 
@@ -306,12 +416,13 @@ plot.popPolls = function(x, ...) {
         for (p in data$parties$code) {
             pollPoints = pollsLong[party == p, .(date, value)]
             if (nrow(pollPoints) > 0)
-                points(pollPoints, col = paste0(data$parties[code == p]$color, alphaPoints),
-                       pch = 20, cex = 0.5)
+                points(pollPoints, col = partyColor(p, alphaPoints), pch = 20, cex = 0.5)
         }
     }
 
-    shown = data$parties$code %in% c(as.character(pollsLong$party), as.character(trendsLong$party))
+    # parties that are not polled any more are left out of the legend
+    visible = c(inRange(pollsLong)$party, inRange(trendsLong)$party)
+    shown = data$parties$code %in% visible
     if (any(shown))
         legend('topleft', legend = data$parties$name[shown], fill = data$parties$color[shown],
                bty = 'n', cex = 0.75, ncol = 2)
@@ -332,9 +443,11 @@ plot.popPolls = function(x, ...) {
 #' print(popCreate())
 print.popPolls = function(x, ...) {
     if (!is.null(x$name))
-        cat(x$name, '\n\n')
+        cat(x$name, '\n')
+    if (!is.null(x$retrieved))
+        cat('Retrieved:', format(x$retrieved, '%Y-%m-%d %H:%M'), '\n')
 
-    cat('Polls:\n\n')
+    cat('\nPolls:\n\n')
     print(x$polls, row.names = FALSE)
     cat('\n')
     if (nrow(x$elections) > 0)
@@ -355,7 +468,7 @@ print.popPolls = function(x, ...) {
 #' @param data A `popPolls` object.
 #' @param name Name of the trend. Defaults to a name built from `type` and the
 #'   applied interpolations.
-#' @param type Trend function, see details.
+#' @param type Name of a trend function (see details) or a function.
 #' @param args Arguments passed on to the trend function.
 #' @param interpolations Named list of interpolations that should be applied to
 #'   the trend, see details.
@@ -367,7 +480,13 @@ print.popPolls = function(x, ...) {
 #' Available trend functions are:
 #'
 #' \describe{
-#'   \item{`kalman`}{Kalman filter, arguments: `sd = 0.003`.}
+#'   \item{`kalman`}{Kalman filter, arguments: `sd = 0.003`, the daily standard
+#'     deviation of the true support on the share scale, and
+#'     `smoothing = FALSE`. With `smoothing = TRUE` every estimate takes the
+#'     later polls into account as well (Rauch-Tung-Striebel smoother). The
+#'     estimates are calculated for the dates with polls only; together with
+#'     `linearInterpolation` the smoothed trend reproduces POLITICO's daily
+#'     `kalmanSmooth` trend.}
 #'   \item{`kalmanKFAS`}{Kalman filter based on the \pkg{KFAS} package,
 #'     arguments: `sd = 0.003`, `smoothing = TRUE`.}
 #'   \item{`weightedMeanLastDays`}{Linearly weighted rolling mean, arguments:
@@ -376,31 +495,59 @@ print.popPolls = function(x, ...) {
 #'     arguments.}
 #' }
 #'
+#' Instead of a name, `type` can be a function. It is called with the
+#' `popPolls` object as argument `data` and the elements of `args`, and has to
+#' return a `data.frame` with the columns `date`, `party` (the codes of
+#' `data$parties`) and `value`, plus optionally `variance`, which is used for
+#' the uncertainty bands.
+#'
 #' Available interpolations are:
 #'
 #' \describe{
 #'   \item{`lastInterpolation`}{Carries the last value forward, no arguments.}
 #'   \item{`linearInterpolation`}{Linear interpolation, no arguments.}
-#'   \item{`bernoulliConvInterpolation`}{Binomial smoothing, arguments:
-#'     `n = 20`, `k = 6`.}
+#'   \item{`bernoulliConvInterpolation`}{Binomial smoothing over consecutive
+#'     trend values, arguments: `n = 20`, `k = 6`.}
 #' }
+#'
+#' Interpolations keep the `variance` of a trend, which is interpolated (and
+#' smoothed) like the values; between two dates with polls it is therefore an
+#' approximation.
 #'
 #' @examples
 #' \dontrun{
 #' de = popRead('DE-parliament')
 #' de = popAddTrend(de, name = 'Kalman 0.003', type = 'kalman', args = list(sd = 0.003))
-#' de = popAddTrend(de, name = 'Kalman Raw', type = 'kalman', args = list(sd = 0.003),
-#'                  interpolations = list('lastInterpolation' = list()))
+#' de = popAddTrend(de, name = 'Kalman smoothed', type = 'kalman',
+#'                  args = list(smoothing = TRUE),
+#'                  interpolations = list('linearInterpolation' = list()))
 #' plot(de)
+#'
+#' # a custom trend: the median of the polls of the last 14 days
+#' rollingMedian = function(data, days = 14) {
+#'     polls = popLong(data)
+#'     dates = seq(min(polls$date), max(polls$date), by = 'day')
+#'     polls[, .(date = dates,
+#'               value = vapply(dates, function(d) median(value[date > d - days & date <= d]),
+#'                              numeric(1))), by = party]
+#' }
+#' de = popAddTrend(de, type = rollingMedian, args = list(days = 21))
 #' }
 popAddTrend = function(data, name = NULL,
                        type = 'kalman', args = list(),
                        interpolations = list()) {
-    if (!inherits(data, 'popPolls'))
-        stop('`data` must be a popPolls object, see popRead()', call. = FALSE)
-    if (!type %in% .trendFunctions)
-        stop(sprintf("Unknown trend type '%s', available are: %s",
-                     type, paste(.trendFunctions, collapse = ', ')), call. = FALSE)
+    checkPopPolls(data, 'data')
+
+    if (is.function(type)) {
+        expression = substitute(type)
+        trendName = if (is.symbol(expression)) as.character(expression) else 'custom'
+    } else {
+        if (!is.character(type) || length(type) != 1 || !type %in% .trendFunctions)
+            stop(sprintf("Unknown trend type '%s', available are: %s, or pass a function",
+                         paste(format(type), collapse = ' '),
+                         paste(.trendFunctions, collapse = ', ')), call. = FALSE)
+        trendName = type
+    }
 
     unknown = setdiff(names(interpolations), .interpolationFunctions)
     if (length(unknown) > 0)
@@ -414,8 +561,7 @@ popAddTrend = function(data, name = NULL,
     if ((nrow(args$data$polls) + nrow(args$data$elections)) == 0)
         stop('No polls', call. = FALSE)
 
-    trendName = type
-    trend = do.call(type, args)
+    trend = checkTrend(do.call(type, args), trendName)
 
     for (i in seq_along(interpolations)) {
         trendName = paste(trendName, names(interpolations)[i], sep = "-")
@@ -428,7 +574,7 @@ popAddTrend = function(data, name = NULL,
         name = trendName
 
     if (nrow(trend) == 0)
-        stop(sprintf("Trend '%s' could not be calculated from the given polls", type), call. = FALSE)
+        stop(sprintf("Trend '%s' could not be calculated from the given polls", trendName), call. = FALSE)
 
     data$trends[[name]] = trend[order(date)]
     return (data)

@@ -18,7 +18,7 @@ popAddTrend(
 \item{name}{Name of the trend. Defaults to a name built from \code{type} and the
 applied interpolations.}
 
-\item{type}{Trend function, see details.}
+\item{type}{Name of a trend function (see details) or a function.}
 
 \item{args}{Arguments passed on to the trend function.}
 
@@ -36,7 +36,13 @@ it is picked up by \code{\link[=plot.popPolls]{plot.popPolls()}}.
 Available trend functions are:
 
 \describe{
-\item{\code{kalman}}{Kalman filter, arguments: \code{sd = 0.003}.}
+\item{\code{kalman}}{Kalman filter, arguments: \code{sd = 0.003}, the daily standard
+deviation of the true support on the share scale, and
+\code{smoothing = FALSE}. With \code{smoothing = TRUE} every estimate takes the
+later polls into account as well (Rauch-Tung-Striebel smoother). The
+estimates are calculated for the dates with polls only; together with
+\code{linearInterpolation} the smoothed trend reproduces POLITICO's daily
+\code{kalmanSmooth} trend.}
 \item{\code{kalmanKFAS}}{Kalman filter based on the \pkg{KFAS} package,
 arguments: \code{sd = 0.003}, \code{smoothing = TRUE}.}
 \item{\code{weightedMeanLastDays}}{Linearly weighted rolling mean, arguments:
@@ -45,21 +51,42 @@ arguments: \code{sd = 0.003}, \code{smoothing = TRUE}.}
 arguments.}
 }
 
+Instead of a name, \code{type} can be a function. It is called with the
+\code{popPolls} object as argument \code{data} and the elements of \code{args}, and has to
+return a \code{data.frame} with the columns \code{date}, \code{party} (the codes of
+\code{data$parties}) and \code{value}, plus optionally \code{variance}, which is used for
+the uncertainty bands.
+
 Available interpolations are:
 
 \describe{
 \item{\code{lastInterpolation}}{Carries the last value forward, no arguments.}
 \item{\code{linearInterpolation}}{Linear interpolation, no arguments.}
-\item{\code{bernoulliConvInterpolation}}{Binomial smoothing, arguments:
-\code{n = 20}, \code{k = 6}.}
+\item{\code{bernoulliConvInterpolation}}{Binomial smoothing over consecutive
+trend values, arguments: \code{n = 20}, \code{k = 6}.}
 }
+
+Interpolations keep the \code{variance} of a trend, which is interpolated (and
+smoothed) like the values; between two dates with polls it is therefore an
+approximation.
 }
 \examples{
 \dontrun{
 de = popRead('DE-parliament')
 de = popAddTrend(de, name = 'Kalman 0.003', type = 'kalman', args = list(sd = 0.003))
-de = popAddTrend(de, name = 'Kalman Raw', type = 'kalman', args = list(sd = 0.003),
-                 interpolations = list('lastInterpolation' = list()))
+de = popAddTrend(de, name = 'Kalman smoothed', type = 'kalman',
+                 args = list(smoothing = TRUE),
+                 interpolations = list('linearInterpolation' = list()))
 plot(de)
+
+# a custom trend: the median of the polls of the last 14 days
+rollingMedian = function(data, days = 14) {
+    polls = popLong(data)
+    dates = seq(min(polls$date), max(polls$date), by = 'day')
+    polls[, .(date = dates,
+              value = vapply(dates, function(d) median(value[date > d - days & date <= d]),
+                             numeric(1))), by = party]
+}
+de = popAddTrend(de, type = rollingMedian, args = list(days = 21))
 }
 }

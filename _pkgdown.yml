@@ -1,0 +1,36 @@
+url: https://petres.github.io/pollofpolls/
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: Reading data
+    contents:
+      - popRead
+      - popGetInfo
+      - popDownload
+      - popCacheClear
+  - title: Trends
+    contents:
+      - popAddTrend
+  - title: Analysis
+    contents:
+      - popLatest
+      - popSeats
+      - popHouseEffects
+      - popFirms
+      - popLong
+  - title: Plotting
+    contents:
+      - plot.popPolls
+      - autoplot.popPolls
+  - title: The popPolls object
+    contents:
+      - popCreate
+      - print.popPolls
+
+articles:
+  - title: Articles
+    navbar: ~
+    contents:
+      - articles/pollofpolls

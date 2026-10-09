@@ -62,7 +62,9 @@ kalmanKFAS = function(data, sd = 0.003, smoothing = TRUE) {
             variance = k$Ptt
         }
 
-        trendData[[p]] = data.table(date = dates, party = p, value = c(value), variance = c(variance))
+        # the variances are on the share scale, see kalman()
+        trendData[[p]] = data.table(date = dates, party = p, value = c(value),
+                                    variance = c(variance)*toProb**2)
     }
 
     rbindlist(trendData, fill = TRUE)

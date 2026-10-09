@@ -50,3 +50,6 @@ vignettes/*.pdf
 
 
 # End of https://www.gitignore.io/api/r
+
+# pkgdown site, built and deployed by GitHub Actions
+/docs/

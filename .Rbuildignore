@@ -2,3 +2,9 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^\.github$
+^Rplots\.pdf$
+^\.claude$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^vignettes/articles$

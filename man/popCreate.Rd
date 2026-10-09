@@ -10,7 +10,9 @@ popCreate(
   parties = data.table(),
   trends = list(),
   name = NULL,
-  elections = data.table()
+  elections = data.table(),
+  code = NULL,
+  retrieved = NULL
 )
 }
 \arguments{
@@ -22,11 +24,15 @@ popCreate(
 \item{parties}{\code{data.table} with the columns \code{code}, \code{name} and \code{color}.}
 
 \item{trends}{Named list of trends, each a long \code{data.table} with the
-columns \code{date}, \code{party} and \code{value}.}
+columns \code{date}, \code{party}, \code{value} and optionally \code{variance}.}
 
 \item{name}{Name of the poll, used as plot title.}
 
 \item{elections}{\code{data.table} of election results in the same shape as \code{polls}.}
+
+\item{code}{Poll code the data was read for.}
+
+\item{retrieved}{Time the data was downloaded.}
 }
 \value{
 An object of class \code{popPolls}.

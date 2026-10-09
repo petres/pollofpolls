@@ -4,7 +4,12 @@
 \alias{popRead}
 \title{Read Poll Data}
 \usage{
-popRead(code, load = c("polls", "elections", "trends"), metadata = TRUE)
+popRead(
+  code,
+  load = c("polls", "elections", "trends"),
+  metadata = TRUE,
+  dir = NULL
+)
 }
 \arguments{
 \item{code}{Code of the poll data, e.g. \code{"DE-parliament"}. See \code{\link[=popGetInfo]{popGetInfo()}}
@@ -15,6 +20,9 @@ for the available codes.}
 
 \item{metadata}{Whether party colours and the descriptive name should be
 looked up on the website.}
+
+\item{dir}{Directory with the files written by \code{\link[=popDownload]{popDownload()}}. If given,
+the data is read from \verb{<dir>/<code>.json} instead of being downloaded.}
 }
 \value{
 A \code{popPolls} object. \verb{$polls} holds one row per poll with the columns
@@ -23,17 +31,25 @@ A \code{popPolls} object. \verb{$polls} holds one row per poll with the columns
 names and colours and \verb{$trends} the published trends in long format.
 }
 \description{
-Downloads a single Poll of Polls data set from POLITICO.
+Downloads a single Poll of Polls data set from POLITICO, or reads one saved
+by \code{\link[=popDownload]{popDownload()}}.
 }
 \details{
 Party colours and the descriptive name are not part of the data endpoint and
 are looked up on the corresponding website. That lookup needs one additional
 request, is cached (see \code{\link[=popCacheClear]{popCacheClear()}}) and can be switched off with
 \code{metadata = FALSE}.
+
+Downloaded data is not cached unless \code{options(pollofpolls.dataMaxAge)} is set
+to the number of seconds a download may be reused.
 }
 \examples{
 \dontrun{
 de = popRead('DE-parliament')
 plot(de)
+
+# read data saved by popDownload()
+popDownload('polls', codes = 'AT-parliament')
+at = popRead('AT-parliament', dir = 'polls', metadata = FALSE)
 }
 }

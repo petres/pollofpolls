@@ -1,0 +1,166 @@
+---
+title: "Get started"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 8, fig.height = 5,
+                      dpi = 96, out.width = "100%")
+```
+
+This article walks through a typical session with the Austrian national
+parliament polls. Everything works the same way for every other poll published
+by [POLITICO's Poll of Polls](https://www.politico.eu/europe-poll-of-polls/).
+The article is rebuilt with live data whenever the site is updated.
+
+```{r, message = FALSE}
+library(pollofpolls)
+library(data.table)
+```
+
+## Reading polls
+
+`popGetInfo()` lists the available polls. It visits every country page once
+and caches the result for a day, so the first call takes a while.
+
+```{r, eval = FALSE}
+popGetInfo()
+```
+
+`popRead()` downloads a poll. The result is a `popPolls` object, a list of
+`data.table`s: one row per poll in `$polls`, election results in `$elections`,
+party codes, names and colours in `$parties` and the trends POLITICO publishes
+in `$trends`.
+
+```{r}
+at = popRead('AT-parliament')
+at
+at$parties
+```
+
+Shares are stored as fractions (`0.27` = 27 %), seat projections such as
+`NL-parliament` as absolute numbers.
+
+## Trends
+
+`popAddTrend()` adds a poll aggregation. The default is a Kalman filter, which
+treats the true support of a party as a random walk and every poll as a noisy
+measurement of it, weighted by its sample size. `sd` is the daily standard
+deviation of the random walk: larger values follow the polls more closely.
+
+The filter only looks back in time. With `smoothing = TRUE`, every estimate also
+takes the later polls into account, which removes the lag behind sudden
+changes. The estimates are calculated for the dates with polls;
+`linearInterpolation` turns them into a daily series.
+
+```{r}
+at = popAddTrend(at, name = 'filtered', type = 'kalman', args = list(sd = 0.003))
+at = popAddTrend(at, name = 'smoothed', type = 'kalman',
+                 args = list(sd = 0.003, smoothing = TRUE),
+                 interpolations = list(linearInterpolation = list()))
+names(at$trends)
+```
+
+The smoothed trend is the method behind POLITICO's own `kalmanSmooth` trend:
+
+```{r}
+both = merge(at$trends$smoothed, at$trends$kalmanSmooth, by = c('date', 'party'))
+both[, .(days = uniqueN(date), meanAbsDifference = mean(abs(value.x - value.y)))]
+```
+
+`plot()` draws the polls as points and every trend as a line. Trends with a
+variance, such as the Kalman trends, come with a 95 % uncertainty band.
+
+```{r}
+at$trends$kalmanSmooth = NULL
+at$trends$kalman = NULL
+plot(at, xlim = c('2024-01-01', NA))
+```
+
+## ggplot2
+
+`autoplot()` draws the same with ggplot2 and returns an ordinary ggplot object,
+so layers, scales and themes can be added as usual.
+
+```{r, message = FALSE}
+library(ggplot2)
+
+at$trends$filtered = NULL
+autoplot(at, xlim = c('2024-01-01', NA), level = 0.9) +
+    theme_minimal() +
+    theme(legend.position = 'bottom')
+```
+
+For anything else, `popLong()` returns polls, election results and trends in
+long format:
+
+```{r}
+popLong(at)
+popLong(at, 'trends')
+```
+
+## Current standings and seats
+
+`popLatest()` summarises a trend (by default the one added last) at a date: the
+estimated support, its uncertainty, the change over the last 30 days and the
+result of the last election.
+
+```{r}
+popLatest(at)
+```
+
+`popSeats()` converts these shares into seats. The Austrian Nationalrat has 183
+seats, a 4 % threshold and allocates the remaining seats on the federal level
+with the D'Hondt method, which a national projection approximates well:
+
+```{r}
+popSeats(at, seats = 183, threshold = 0.04, method = 'dhondt')
+```
+
+## Polling firms
+
+`popFirms()` lists the firms behind the polls, `popHouseEffects()` estimates how
+much each firm deviates from the consensus for each party, i.e. from a smoothed
+Kalman trend through all polls:
+
+```{r}
+popFirms(at)
+
+effects = popHouseEffects(at, minPolls = 10)
+# percentage points, one row per firm
+effects[, effect := round(100*effect, 1)]
+dcast(effects, firm ~ party, value.var = 'effect')
+```
+
+## Custom trends
+
+`popAddTrend()` also takes a function. It gets the `popPolls` object as `data`
+and returns a long table with the columns `date`, `party` and `value` (and
+optionally `variance`). For example, the median of the polls of the last few
+weeks:
+
+```{r}
+rollingMedian = function(data, days = 21) {
+    polls = popLong(data)[date >= as.Date('2024-01-01')]
+    dates = seq(min(polls$date), max(polls$date), by = 'week')
+    polls[, .(date = dates,
+              value = vapply(dates, function(d) median(value[date > d - days & date <= d]),
+                             numeric(1))),
+          by = party]
+}
+
+at = popAddTrend(at, type = rollingMedian, args = list(days = 28))
+plot(at, xlim = c('2024-01-01', NA))
+```
+
+## Working offline
+
+`popDownload()` saves the data of several polls as published, and
+`popRead(dir = ...)` reads it back without sending a request:
+
+```{r, eval = FALSE}
+popDownload('polls', codes = c('AT-parliament', 'DE-parliament'))
+de = popRead('DE-parliament', dir = 'polls')
+```
+
+Within a session, `options(pollofpolls.dataMaxAge = 3600)` keeps downloaded
+data for an hour instead of fetching it again on every `popRead()`.
